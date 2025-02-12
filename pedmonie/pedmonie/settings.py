@@ -90,8 +90,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pedmonie_db',  # Change to your DB name
-        'USER': 'mantle_bearer',         # Change to your MySQL username
-        'PASSWORD': 'Mantle_Bearer@123#',  # Change to your MySQL password
+        'USER': 'your-username',         # Change to your MySQL username
+        'PASSWORD': 'your-password',  # Change to your MySQL password
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
