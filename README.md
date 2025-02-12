@@ -44,7 +44,7 @@ Ensure the following tools are installed:
 - pip (Python package manager)
 - Git
 - Virtual environment tool (e.g., `venv` or `virtualenv`)
-- PostgreSQL
+- MySQL
 
 ### How to Run the API Locally
 
@@ -152,7 +152,7 @@ SECRET_KEY=your-secret-key
 DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
 
-# PostgreSQL
+# MySQL
 DB_NAME=your-database-name
 DB_USER=your-database-user
 DB_PASSWORD=your-database-password
