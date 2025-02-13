@@ -141,6 +141,19 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # extra required fields during user creation
     REQUIRED_FIELDS = ['first_name', 'last_name', 'business_name', 'phone']
 
+    # resolve error about Django's built-in authentication system permissions at the db level before migrations
+    # both the default Django User model & Merchant model inherit from PermissionsMixin
+    # PermissionsMixin has fields groups + user_permissions
+    # both model try to create reverse relationships with the name user_set to group + permission models
+    # hence ERRORS: auth.User.groups: (fields.E304) Reverse accessor 'Group.user_set' for 'auth.User.groups' clashes with reverse accessor for 'authentication.Merchant.groups'.
+    # fix: specify different related_name value for Merchant model to avoid clashing with User model relationships
+    class Meta:
+        # set merchant permissions
+        permissions = [ # Onome e.g. manage balance###############
+            ("manage_balance", "Can manage merchant balance")
+        ] 
+        default_related_name = 'merchants' # this fixes relationship clash
+
     # define a __str__ method for human-readable output
     # return merchant
     def __str__(self):
