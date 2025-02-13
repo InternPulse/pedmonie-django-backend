@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     'orders',
 ]
 
+# custom user model setting
+AUTH_USER_MODEL = 'authentication.Merchant'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -96,14 +99,21 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'your_db',  # Change to your DB name
-        'USER': 'your-username',         # Change to your MySQL username
-        'PASSWORD': 'your-password',  # Change to your MySQL password
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'your_db',  # Change to your DB name
+#        'USER': 'your-username',         # Change to your MySQL username
+#        'PASSWORD': 'your-password',  # Change to your MySQL password
+#        'HOST': '127.0.0.1',
+#        'PORT': '3306',
+#    }
+#}
 
 
 
