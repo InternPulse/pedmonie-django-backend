@@ -29,6 +29,8 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+# add django rest framework app
+# add django rest framework-simplejwt app to enable JWT authentication
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,10 +59,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pedmonie.urls'
 
+# configure django rest framework settings
+# use JWT authentication for API requesrs
+# require authentication for all views by default
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 
