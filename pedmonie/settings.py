@@ -89,9 +89,9 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'your_db',  # Change to your DB name
-        'USER': 'your-username',         # Change to your MySQL username
-        'PASSWORD': 'your-password',  # Change to your MySQL password
+        'NAME': 'pedmonie_db',  # Change to your DB name
+        'USER': 'mantle_bearer',         # Change to your MySQL username
+        'PASSWORD': 'Mantle_Bearer@123#',  # Change to your MySQL password
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
