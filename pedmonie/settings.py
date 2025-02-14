@@ -82,8 +82,9 @@ REST_FRAMEWORK = {
 
 # JWT settings
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+# set token lifetime
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
