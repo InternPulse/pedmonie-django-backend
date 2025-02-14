@@ -29,6 +29,8 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+import pymysql
+pymysql.install_as_MySQLdb()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -89,9 +91,9 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'your_db',  # Change to your DB name
-        'USER': 'your-username',         # Change to your MySQL username
-        'PASSWORD': 'your-password',  # Change to your MySQL password
+        'NAME': 'pedmoniedb',  # Change to your DB name
+        'USER': 'root',         # Change to your MySQL username
+        'PASSWORD': 'Victoryuche*7',  # Change to your MySQL password
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
