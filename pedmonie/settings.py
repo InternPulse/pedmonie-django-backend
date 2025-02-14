@@ -29,6 +29,8 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+# add django rest framework app
+# add django rest framework-simplejwt app to enable JWT authentication
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -45,6 +47,9 @@ INSTALLED_APPS = [
     'orders',
 ]
 
+# custom user model setting
+AUTH_USER_MODEL = 'authentication.Merchant'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -57,10 +62,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pedmonie.urls'
 
+# configure django rest framework settings
+# use JWT authentication for API requesrs
+# require authentication for all views by default
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 
@@ -88,14 +99,21 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'your_db',  # Change to your DB name
-        'USER': 'your-username',         # Change to your MySQL username
-        'PASSWORD': 'your-password',  # Change to your MySQL password
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': 'your_db',  # Change to your DB name
+#        'USER': 'your-username',         # Change to your MySQL username
+#        'PASSWORD': 'your-password',  # Change to your MySQL password
+#        'HOST': '127.0.0.1',
+#        'PORT': '3306',
+#    }
+#}
 
 
 
