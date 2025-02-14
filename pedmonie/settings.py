@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+# import for JWT access token lifetime
+from datetime import timedelta
+
+####################################################################################################
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -63,7 +68,8 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'pedmonie.urls'
 
 # configure django rest framework settings
-# use JWT authentication for API requesrs
+# use JWT authentication for API requests
+# - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
 # require authentication for all views by default
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -74,6 +80,15 @@ REST_FRAMEWORK = {
     ),
 }
 
+# JWT settings
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
+    "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
+}
 
 TEMPLATES = [
     {
@@ -99,21 +114,14 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'your_db',  # Change to your DB name
+        'USER': 'your-username',         # Change to your MySQL username
+        'PASSWORD': 'your-password',  # Change to your MySQL password
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
     }
 }
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': 'your_db',  # Change to your DB name
-#        'USER': 'your-username',         # Change to your MySQL username
-#        'PASSWORD': 'your-password',  # Change to your MySQL password
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
-#    }
-#}
 
 
 

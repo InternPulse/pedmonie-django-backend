@@ -40,6 +40,22 @@ class AdminSerializer(serializers.ModelSerializer):
         # fields that can be viewed but not modified via API        
         read_only_fields = ['merchant_id', 'created_at', 'updated_at', 'total_balance']
 
+    # create a superuser
+    def create(self, validated_data):
+        """Create a new superuser merchant with the provided validated data.
+
+        :param validated_data: Dictionary containing the validated data from the request body
+        :type validated_data: dict
+        :return: Created merchant instance
+        :rtype: Merchant
+        """        
+        # create a new superuser merchant instance using the MerchantManager with the validated data
+        # NOTE: MerchantManager.create_superuser method handles password hashing
+        merchant = Merchant.objects.create_superuser(**validated_data) 
+        
+        # return the created superuser merchant instance
+        return merchant
+
     # ensure only superusers can edit certain fields
     def validate(self, data):
         """Validate that only superusers can modify restricted fields.
