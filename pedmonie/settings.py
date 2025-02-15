@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+from decouple import config  # Import python-decouple
+
+# import for JWT access token lifetime
+from datetime import timedelta
+
+####################################################################################################
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -19,16 +26,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# LOAD SECRET_KEY from .env
+SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
+
+
+# LOAD DEBUG mode FOR DEVELOPMENT from .env
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
 
 # Application definition
+# add django rest framework app
+# add django rest framework-simplejwt app to enable JWT authentication
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -41,9 +52,14 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  # JWT Authentication !!! Do not edit
     'authentication',
     'dashboard',
+    'payments',
+    'support',
     'wallets',
     'orders',
 ]
+
+# custom user model setting
+AUTH_USER_MODEL = 'authentication.Merchant'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -57,12 +73,28 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pedmonie.urls'
 
+# configure django rest framework settings
+# use JWT authentication for API requests
+# - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
+# require authentication for all views by default
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
+# JWT settings
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
+    "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
+}
 
 TEMPLATES = [
     {
@@ -89,11 +121,11 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'pedmonie_db',  # Change to your DB name
-        'USER': 'mantle_bearer',         # Change to your MySQL username
-        'PASSWORD': 'Mantle_Bearer@123#',  # Change to your MySQL password
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
     }
 }
 
