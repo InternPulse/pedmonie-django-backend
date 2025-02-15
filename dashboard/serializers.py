@@ -1,20 +1,17 @@
 from rest_framework import serializers
-from authentication.models import User
-from .models import AuditLog 
+from authentication.models import Merchant
+from authentication.serializers import AdminSerializer  
+from .models import AuditLog
 
-# Serialize Merchant Data for Admin Dashboard
-class MerchantSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            "merchant_id", "first_name", "last_name", "business_name", "email",
-            "phone", "total_balance", "is_email_verified", "is_kyc_verified",
-            "created_at"
-        ]
-        read_only_fields = ["merchant_id", "created_at"]
+class MerchantDashboardSerializer(AdminSerializer):  
+    """Serializer for displaying merchant details in the dashboard (admin only)."""
 
-# Serialize Audit Logs
+    class Meta(AdminSerializer.Meta):  
+        fields = AdminSerializer.Meta.fields + ['total_balance', 'created_at']
+        read_only_fields = ['total_balance', 'created_at']
+
 class AuditLogSerializer(serializers.ModelSerializer):
+    """Serializes admin audit logs."""
     admin_email = serializers.EmailField(source="admin.email", read_only=True)
 
     class Meta:
