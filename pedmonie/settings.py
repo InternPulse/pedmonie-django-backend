@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  # JWT Authentication !!! Do not edit
     'authentication',
     'dashboard',
+    'payments',
+    'support',
     'wallets',
     'orders',
 ]
