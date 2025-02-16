@@ -4,6 +4,11 @@ from rest_framework import serializers
 # import Merchant model from the current directory
 from .models import Merchant
 
+# customise TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+###############################################################################################################
+
 # create a serializer for admin users
 class AdminSerializer(serializers.ModelSerializer):
     # configure password field
@@ -21,21 +26,7 @@ class AdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = Merchant
         # allow superusers to manage all merchant verification statuses
-        fields = ['merchant_id',
-                  'email',
-                  'password',
-                  'first_name',
-                  'last_name',
-                  'business_name',
-                  'role',                  
-                  'is_staff',
-                  'is_superuser',
-                  'is_email_verified',
-                  'is_nin_verified',
-                  'is_bvn_verified',
-                  'is_business_cac_verified',
-                  'is_kyc_verified',                  
-                  ]
+        fields = '__all__'                          
         
         # fields that can be viewed but not modified via API        
         read_only_fields = ['merchant_id', 'created_at', 'updated_at', 'total_balance']
@@ -99,3 +90,53 @@ class AdminSerializer(serializers.ModelSerializer):
         # update other fields normally with super().update
         # return the update           
         return super().update(instance, validated_data)
+
+# resolve error when trying to get a token: AttributeError at /api/v1/token/ 'Merchant' object has no attribute 'id
+# - Simple JWT is looking for an 'id' field, but the custom user model (Merchant) uses 'merchant_id' instead    
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # configure serializer to use email instead of username for authentication
+    username_field = 'email'
+
+    # custom method to enhance JWT token with additional claims
+    @classmethod
+    def get_token(cls, user):
+        """Generate JWT token with custom claims for the superuser merchant.
+
+        :param user: Generate a token for Merchant instance
+        :type user: Merchant
+        :return: JWT token with custom claims 
+        :rtype: rest_framework_simplejwt.tokens.Token
+        """
+        # get the base token from parent class
+        token = super().get_token(user)
+
+        # add custom claims to token payload
+        # avoid sensitive data + mutable data, include claims for user ID, authorisation checks, frequently accessed user info
+        # public custom claims
+        token['merchant_id'] = str(user.merchant_id)
+        token['email'] = user.email
+        token['role'] = user.role
+        # private custom claims
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser        
+
+        # return token    
+        return token    
+    
+    # include merchant_id in the JWT token response
+    def validate(self, attrs):
+        """Validate & process serializer data.
+
+        :param attrs: Dictionary of fields values to validate
+        :type attrs: dict
+        :return: Validated data with merchant_id included
+        :rtype: dict
+        """
+        # call parent class's validate() method to perform default JWT validation & get token data
+        data = super().validate(attrs)
+
+        # add merchant_id to the response
+        data['merchant_id'] = str(self.user.merchant_id)
+
+        # return data
+        return data
