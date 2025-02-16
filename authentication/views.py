@@ -33,6 +33,8 @@ from .serializers import CustomTokenObtainPairSerializer
 
 # create a custom view that inherits from DRF's built-in token view to generate a JWT token with custom claims
 # - uses custom serializer for email-based authentication & add custom custom claims 
+# keep the custom JWT setting local to the auth app, instead of doing it in settings.py making it global
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
 class CustomTokenObtainPairView(TokenObtainPairView):
     # specify the custom serializer class that defines token customisations
     serializer_class = CustomTokenObtainPairSerializer

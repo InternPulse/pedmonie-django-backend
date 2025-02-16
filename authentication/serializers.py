@@ -98,6 +98,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'
 
     # custom method to enhance JWT token with additional claims
+    # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
     @classmethod
     def get_token(cls, user):
         """Generate JWT token with custom claims for the superuser merchant.
