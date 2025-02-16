@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+from decouple import config  # Import python-decouple
+
 # import for JWT access token lifetime
 from datetime import timedelta
 
@@ -24,11 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# LOAD SECRET_KEY from .env
+SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
+
+
+# LOAD DEBUG mode FOR DEVELOPMENT from .env
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -48,6 +52,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  # JWT Authentication !!! Do not edit
     'authentication',
     'dashboard',
+    'payments',
+    'support',
     'wallets',
     'orders',
 ]
@@ -124,11 +130,11 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'your_db',  # Change to your DB name
-        'USER': 'your-username',         # Change to your MySQL username
-        'PASSWORD': 'your-password',  # Change to your MySQL password
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
     }
 }
 
