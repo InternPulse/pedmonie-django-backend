@@ -1,7 +1,7 @@
-from django.contrib import admin
+# from django.contrib import admin
 
-# Register your models here.
-from .models import PaymentGateway, MerchantPaymentGateway
+# # Register your models here.
+# from .models import PaymentGateway, MerchantPaymentGateway
 
-admin.site.register(PaymentGateway)
-admin.site.register(MerchantPaymentGateway)
+# admin.site.register(PaymentGateway)
+# admin.site.register(MerchantPaymentGateway)

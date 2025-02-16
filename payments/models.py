@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 import uuid
-from authentication.models import User
+from authentication.models import Merchant
 
 class PaymentGateway(models.Model):
     gateway_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -16,7 +16,7 @@ class PaymentGateway(models.Model):
 class MerchantPaymentGateway(models.Model):
     gateway_payment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gateway = models.ForeignKey(PaymentGateway, on_delete=models.CASCADE)
-    merchant = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
     status = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

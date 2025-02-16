@@ -1,24 +1,24 @@
 from django.db import models
+import uuid
+from authentication.models import Merchant
 
 # Create your models here.
-import uuid
-from authentication.models import User
-
-class PaymentGateway(models.Model):
-    gateway_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50)
-    gateway_logo = models.ImageField(upload_to='payment_gateway_logos/')
+class SupportTicket(models.Model):
+    ticket_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
+    description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"Ticket {self.ticket_id} - {self.status}"
 
-class MerchantPaymentGateway(models.Model):
-    gateway_payment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    gateway = models.ForeignKey(PaymentGateway, on_delete=models.CASCADE)
-    merchant = models.ForeignKey(User, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
-    status = models.BooleanField(default=False)
+class SupportMessage(models.Model):
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE)
+    sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.merchant.business_name} - {self.gateway.name}"
+        return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"
