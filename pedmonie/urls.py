@@ -25,4 +25,8 @@ urlpatterns = [
     path("support/", include("support.urls")),   
     path('wallets/', include('wallets.urls')),
     path('orders/', include('orders.urls')),
+
+
+    # Explicitly register API paths
+    # path("api/v1/admins/", include("dashboard.urls")),
 ]

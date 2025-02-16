@@ -9,20 +9,20 @@ class IsSuperAdmin(IsAuthenticated):
     def has_permission(self, request, view):
         return bool(request.user and request.user.role == "superadmin")
 
-# ✅ View all merchants
+# View all merchants
 class MerchantListView(generics.ListAPIView):
-    queryset = Merchant.objects.filter(role="merchant")  # ✅ Only merchants
+    queryset = Merchant.objects.filter(role="merchant")  # Only merchants
     serializer_class = MerchantSerializer
     permission_classes = [IsSuperAdmin]
 
-# ✅ Retrieve a specific merchant
+# Retrieve a specific merchant
 class MerchantDetailView(generics.RetrieveAPIView):
     queryset = Merchant.objects.filter(role="merchant")
     serializer_class = MerchantSerializer
     permission_classes = [IsSuperAdmin]
     lookup_field = "merchant_id"
 
-# ✅ Update a merchant
+# Update a merchant
 class MerchantUpdateView(generics.UpdateAPIView):
     queryset = Merchant.objects.filter(role="merchant")
     serializer_class = MerchantSerializer
@@ -33,7 +33,7 @@ class MerchantUpdateView(generics.UpdateAPIView):
         merchant = serializer.save()
         AuditLog.objects.create(admin=self.request.user, action=f"Updated merchant {merchant.email}")
 
-# ✅ Delete a merchant
+# Delete a merchant
 class MerchantDeleteView(generics.DestroyAPIView):
     queryset = Merchant.objects.filter(role="merchant")
     serializer_class = MerchantSerializer
@@ -44,7 +44,7 @@ class MerchantDeleteView(generics.DestroyAPIView):
         AuditLog.objects.create(admin=self.request.user, action=f"Deleted merchant {instance.email}")
         instance.delete()
 
-# ✅ View admin actions (audit logs)
+# View admin actions (audit logs)
 class AuditLogListView(generics.ListAPIView):
     queryset = AuditLog.objects.all().order_by("-created_at")
     serializer_class = AuditLogSerializer

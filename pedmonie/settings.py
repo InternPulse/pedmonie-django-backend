@@ -80,11 +80,19 @@ ROOT_URLCONF = 'pedmonie.urls'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication', # enable session authentication
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.JSONRenderer',  # optional to support JSON response as well
+    ),
 }
+
+
 
 # JWT settings
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
@@ -133,7 +141,7 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # SQLite engine
-        'NAME': BASE_DIR / 'db.sqlite3',         # Path to the SQLite database file
+        'NAME': BASE_DIR / 'db.db',         # Path to the SQLite database file
     }
 }
 
