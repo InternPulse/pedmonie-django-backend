@@ -24,7 +24,7 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 
 # import custom view for JWT token generation in athentication app one level up in the directory
-from ..authentication.views import CustomTokenObtainPairView
+from authentication.views import CustomTokenObtainPairView
 
 #########################################################################################################################
 

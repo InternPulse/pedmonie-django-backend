@@ -127,16 +127,27 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+#         'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+#         'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+#         'HOST': config('DB_HOST', default='localhost'),
+#         'PORT': config('DB_PORT', default='3306'),
+#     }
+# }
+
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
-        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
-        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-    }
-}
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    } 
+    
+} 
+    
 
 
 
