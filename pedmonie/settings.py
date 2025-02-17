@@ -77,6 +77,9 @@ ROOT_URLCONF = 'pedmonie.urls'
 # use JWT authentication for API requests
 # - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
 # require authentication for all views by default
+# add versioning globally
+# https://www.django-rest-framework.org/api-guide/versioning/#configuring-the-versioning-scheme
+# https://www.django-rest-framework.org/api-guide/versioning/#other-versioning-settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -84,12 +87,18 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning', # request.version should return 1
+    'DEFAULT_VERSION': 'v1', # DRF expects version numbers without prefixes e.g. 'v', else it would duplicate into /api/vv1/
+    'ALLOWED_VERSIONS': ['v1'],
+    'VERSION_PARAM': 'version',
 }
 
 # JWT settings
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+# set token lifetime
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
