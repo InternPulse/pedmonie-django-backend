@@ -76,13 +76,13 @@ ROOT_URLCONF = 'pedmonie.urls'
 
 # SMTP Email Configuration
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
-EMAIL_PORT = 465  # Port for SSL
+EMAIL_HOST = config('EMAIL_HOST')  # Your SMTP host
+EMAIL_PORT = config('EMAIL_PORT')  # Port for SSL
 EMAIL_USE_SSL = True  # Use SSL for secure connection
 EMAIL_USE_TLS = False  # TLS should be False if SSL is True
-EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
-EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
-DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Your email
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Your SMTP password
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')  # Default sender email
 
 
 
