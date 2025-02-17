@@ -9,13 +9,24 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import environ
 from pathlib import Path
+from datetime import timedelta
+import os
+
+
+
+
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -74,6 +85,14 @@ REST_FRAMEWORK = {
     ),
 }
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'merchant_id',
+}
 
 TEMPLATES = [
     {
@@ -104,7 +123,7 @@ DATABASES = {
     }
 }
 
-#DATABASES = {
+# DATABASES = {
 #    'default': {
 #        'ENGINE': 'django.db.backends.mysql',
 #        'NAME': 'your_db',  # Change to your DB name
@@ -113,7 +132,7 @@ DATABASES = {
 #        'HOST': '127.0.0.1',
 #        'PORT': '3306',
 #    }
-#}
+# }
 
 
 
@@ -157,3 +176,95 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#Redis settings
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+
+
+EMAIL_VERIFICATION_TIMEOUT = 300  # 5 minutes
+VERIFICATION_CODE_LENGTH = 6
+
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
+EMAIL_PORT = 465  # Port for SSL
+EMAIL_USE_SSL = True  # Use SSL for secure connection
+EMAIL_USE_TLS = False  # TLS should be False if SSL is True
+EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
+EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
+DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
+
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'debug.log',
+        },
+    },
+    'loggers': {
+        '': {  # Root logger
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        },
+        'django.mail': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+
+
+
+
+
+
+# EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
+# SENDGRID_API_KEY = 'os.environ.get('SENDGRID_API_KEY')
+# SENDGRID_SANDBOX_MODE_IN_DEBUG = True  # Set to False to send actual emails in development
+# DEFAULT_FROM_EMAIL = 'your@email.com'
+
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.hostinger.com"
+# EMAIL_PORT = 465
+# EMAIL_USE_SSL = False
+# EMAIL_USE_TLS = False
+# EMAIL_HOST_USER = "info@prudytelecom.com.ng"  
+# EMAIL_HOST_PASSWORD = env("EMAIL_APP_PASSWORD")  # Load from .env file
+# FROM_EMAIL = EMAIL_HOST_USER
+# EMAIL_SSL_CERTFILE = None
+# EMAIL_SSL_KEYFILE = None
+# EMAIL_TIMEOUT = 30
+# EMAIL_SSL_CIPHER_STRING = 'HIGH:!DH:!aNULL'
+# EMAIL_SSL_CHECK_HOSTNAME = False
+# EMAIL_SSL_VERIFY_CRT = False
+
+
+# from authentication.utils import get_hostinger_cert
+# SMTP_CERT = get_hostinger_cert()
+# print("Fetched SMTP Certificate:", SMTP_CERT)       #Debug output
+# if SMTP_CERT:
+#     if EMAIL_SSL_CERTFILE:
+#         with open(EMAIL_SSL_CERTFILE, 'w') as f:
+#             f.write(SMTP_CERT)

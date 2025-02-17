@@ -4,6 +4,10 @@ from rest_framework import serializers
 # import Merchant model from the current directory
 from .models import Merchant
 
+import hashlib
+import os
+import uuid
+from .utils import generate_otp, store_verification_code, verify_code, send_otp_email 
 # create a serializer for admin users
 class AdminSerializer(serializers.ModelSerializer):
     # configure password field
@@ -83,3 +87,55 @@ class AdminSerializer(serializers.ModelSerializer):
         # update other fields normally with super().update
         # return the update           
         return super().update(instance, validated_data)
+    
+
+
+
+
+
+
+
+class MerchantRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8, required=True)
+    confirm_password = serializers.CharField(write_only=True, min_length=8, required=True)
+    class Meta:
+        model = Merchant
+        fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'bvn', 'email', 'phone', 'password', 'confirm_password']
+        extra_fields = ['created_at', 'updated_at', 'role', 'total_balance', 'email_verification_code', 'is_email_verified']
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({'password': 'Passwords do not match'})
+        
+        if not data.get('bvn'):
+            raise serializers.ValidationError({'bvn': 'BVN is required'})
+        
+        return data
+    def create(self, validated_data):
+        validated_data.pop('confirm_password')
+        password = validated_data.pop('password')
+        merchant = Merchant.objects.create_user(password=password, **validated_data)
+
+        #Generate and send verification code
+        code = generate_otp()
+        store_verification_code(merchant.email, code)
+        send_otp_email(merchant.email, code)
+
+        return merchant
+
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    code = serializers.CharField(min_length=6, max_length=6, required=True)
+    
+       
+        
+class MerchantLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(required=True)
+
+
+class MerchantProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Merchant
+        fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'email', 'phone', 'is_email_verified',
+                  'role', 'total_balance','created_at', 'updated_at'
+        ]
