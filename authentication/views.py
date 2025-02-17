@@ -10,7 +10,7 @@ import hashlib
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .utils import generate_otp, send_otp_email, store_verification_code, verify_code
+from .utils import generate_otp, send_otp_email, store_verification_code
 
 class MerchantViewSet(viewsets.ModelViewSet):
     """
