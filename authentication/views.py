@@ -80,7 +80,8 @@ class AdminView(APIView):
             {
                 "status": "error",
                 "code": 400,
-                "message": "Unsuccessful creating a Superadmin with invalid data",                
+                "message": "Unsuccessful creating a Superadmin with invalid data",    
+                "errors": serializer.errors,            
                 "data": serializer.data,                
             },            
             status=status.HTTP_400_BAD_REQUEST,             
