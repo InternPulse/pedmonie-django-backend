@@ -1,91 +1,137 @@
-from django.http import HttpResponse
-from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import AllowAny
+from authentication.models import Merchant
+from authentication.serializers import AdminSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from .models import Merchant
-from .serializers import AdminSerializer
+from authentication.utils import generate_otp, send_otp_email
+from django.core.cache import cache  # Store OTP temporarily in Django cache
 
-
-# def MerchantCreateView(request):
-#     return HttpResponse("Hello, World")
-
-class MerchantCreateView(generics.CreateAPIView):
-    """Handles merchant & admin registration."""
-    queryset = Merchant.objects.all()
-    serializer_class = AdminSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        """Custom user creation logic."""
-        data = request.data.copy()
-
-        # Ensure only 'merchant' and 'superadmin' roles are allowed
-        role = data.get("role", "merchant").lower()
-        if role not in ["merchant", "superadmin"]:
-            return Response({"error": "Invalid role. Choose 'merchant' or 'superadmin'."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Proceed with user creation
-        serializer = self.get_serializer(data=data)
-        if serializer.is_valid():
-            user = serializer.save()
-
-            # Generate JWT token
-            refresh = RefreshToken.for_user(user)
-            return Response(
-                {
-                    "message": "User registered successfully.",
-                    "access": str(refresh.access_token),
-                    "refresh": str(refresh),
-                    "user": AdminSerializer(user).data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class MerchantLoginView(generics.GenericAPIView):
-    """Handles merchant/admin login & JWT generation."""
-    serializer_class = AdminSerializer
+# Admin Registration
+class AdminRegistrationView(APIView):
+    """Create a new admin (superadmin)."""
     permission_classes = [AllowAny]
 
     def post(self, request):
-        """Authenticate user and return JWT token."""
+        """Register a new admin."""
+        serializer = AdminSerializer(data=request.data)
+        if serializer.is_valid():
+            admin = serializer.save(is_staff=True, is_superuser=True, role="superadmin")
+
+            # Generate JWT token
+            refresh = RefreshToken.for_user(admin)
+            return Response({
+                "message": "Admin registered successfully.",
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": AdminSerializer(admin).data
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#  Merchant Registration
+# class MerchantRegistrationView(APIView):
+#     """Create a new merchant."""
+#     permission_classes = [AllowAny]
+
+#     def post(self, request):
+#         """Register a new merchant."""
+#         serializer = AdminSerializer(data=request.data)
+#         if serializer.is_valid():
+#             merchant = serializer.save(role="merchant")
+
+#             # Generate JWT token
+#             refresh = RefreshToken.for_user(merchant)
+#             return Response({
+#                 "message": "Merchant registered successfully.",
+#                 "access": str(refresh.access_token),
+#                 "refresh": str(refresh),
+#                 "user": AdminSerializer(merchant).data
+#             }, status=status.HTTP_201_CREATED)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class MerchantRegistrationView(APIView):
+    """Register a new merchant and send OTP for email verification."""
+    
+    def post(self, request):
+        """Register merchant and send OTP."""
+        serializer = AdminSerializer(data=request.data)
+        if serializer.is_valid():
+            merchant = serializer.save(role="merchant")
+
+            # Generate OTP
+            otp = generate_otp()
+
+            # Store OTP temporarily in Django cache (expires in 5 mins)
+            cache.set(f"otp_{merchant.email}", otp, timeout=300)
+
+            # Send OTP via email
+            if send_otp_email(merchant.email, otp):
+                return Response({
+                    "message": "Merchant registered successfully. Please verify your email using the OTP sent to your inbox.",
+                    "merchant_id": str(merchant.merchant_id)
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "Failed to send OTP email."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# Verify Merchant Email using OTP
+class VerifyOTPView(APIView):
+    """Verify merchant email using OTP."""
+    
+    def post(self, request):
+        """Check OTP and verify email."""
+        email = request.data.get("email")
+        otp_provided = request.data.get("otp")
+
+        if not email or not otp_provided:
+            return Response({"error": "Email and OTP are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve OTP from cache
+        otp_stored = cache.get(f"otp_{email}")
+
+        if otp_stored and otp_provided == otp_stored:
+            try:
+                merchant = Merchant.objects.get(email=email)
+                merchant.is_email_verified = True
+                merchant.save()
+                
+                # Remove OTP from cache after successful verification
+                cache.delete(f"otp_{email}")
+
+                return Response({"message": "Email verified successfully!"}, status=status.HTTP_200_OK)
+            except Merchant.DoesNotExist:
+                return Response({"error": "Merchant not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+#  Merchant Login (JWT)
+class MerchantLoginView(APIView):
+    """Login for merchants using email & password."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        """Authenticate and return JWT token."""
         email = request.data.get("email")
         password = request.data.get("password")
 
-        if not email or not password:
-            return Response({"error": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Authenticate user
-        user = authenticate(email=email, password=password)
-        if user:
-            # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            return Response(
-                {
+        try:
+            merchant = Merchant.objects.get(email=email)
+            if merchant.check_password(password):
+                refresh = RefreshToken.for_user(merchant)
+                return Response({
                     "message": "Login successful.",
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
-                    "user": AdminSerializer(user).data,
-                },
-                status=status.HTTP_200_OK,
-            )
-        return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
-
-class MerchantLogoutView(generics.GenericAPIView):
-    """Handles user logout by blacklisting the refresh token."""
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        """Blacklist refresh token to log user out."""
-        try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()  # Blacklist the refresh token
-            return Response({"message": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            return Response({"error": "Invalid token."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
+                    "user": AdminSerializer(merchant).data
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "Invalid password."}, status=status.HTTP_400_BAD_REQUEST)
+        except Merchant.DoesNotExist:
+            return Response({"error": "Merchant not found."}, status=status.HTTP_404_NOT_FOUND)

@@ -15,7 +15,7 @@ class MerchantSerializer(serializers.ModelSerializer):
 
 class AuditLogSerializer(serializers.ModelSerializer):
     """Serializes admin audit logs."""
-    admin_email = serializers.EmailField(source="admin.email", read_only=True)  # ✅ Get admin email from Merchant model
+    admin_email = serializers.EmailField(source="admin.email", read_only=True)  # Get admin email from Merchant model
 
     class Meta:
         model = AuditLog

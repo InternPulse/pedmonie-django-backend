@@ -73,6 +73,20 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pedmonie.urls'
 
+
+# SMTP Email Configuration
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
+EMAIL_PORT = 465  # Port for SSL
+EMAIL_USE_SSL = True  # Use SSL for secure connection
+EMAIL_USE_TLS = False  # TLS should be False if SSL is True
+EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
+EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
+DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
+
+
+
+
 # configure django rest framework settings
 # use JWT authentication for API requests
 # - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration

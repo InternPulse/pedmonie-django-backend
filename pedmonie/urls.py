@@ -19,14 +19,15 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('authentication.urls')),
-    path('dashboard/', include('dashboard.urls')),
-    path("payments/", include("payments.urls")),
-    path("support/", include("support.urls")),   
-    path('wallets/', include('wallets.urls')),
-    path('orders/', include('orders.urls')),
+    path("api/v1/", include("authentication.urls")),  # Authentication Endpoints
+    path("api/v1/", include("dashboard.urls")),       # Dashboard Endpoints
+    path("api/v1/", include("payments.urls")),        # Payment Endpoints
+    path("api/v1/", include("support.urls")),         # Support Endpoints
+    path("api/v1/", include("wallets.urls")),         # Wallet Endpoints
+    path("api/v1/", include("orders.urls")),          # Order Endpoints
 
 
     # Explicitly register API paths
     # path("api/v1/admins/", include("dashboard.urls")),
 ]
+
