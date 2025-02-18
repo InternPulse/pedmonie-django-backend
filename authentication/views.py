@@ -43,7 +43,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class AdminView(APIView):
     # set JWT as the authentication method for this view (needs a valid token in request header)
     authentication_classes = [JWTAuthentication]
-    # check that is_staff=True with Django REST Framework's built-in permission class
+    # check that the user was authenticated with is_staff=True with Django REST Framework's built-in permission class(IsAdminUser)
+    # don't add IsAuthenticated as IsAdminUser already inherits from IsAuthenticated
     permission_classes = [permissions.IsAdminUser]
 
     # a method to carry out superuser creation
