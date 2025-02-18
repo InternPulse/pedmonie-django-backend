@@ -1,12 +1,31 @@
-from django.urls import path
-from .views import AdminRegistrationView, MerchantRegistrationView, MerchantLoginView, VerifyOTPView
+# import path for URL pattern routing in Django
+from django.urls import path, include
+
+# import AdminView class from views.py in the current directory
+from .views import AdminView, MerchantViewSet
+
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
+
+
+########################################################################################################################
+
+# add url to superuser post method
+# add url to superuser get method
+# don't specify method -> APIView automatically maps HTTP methods (POST, GET) to corresponding class methods with as_view()
+
+
+router = DefaultRouter()
+router.register(r'merchants', MerchantViewSet, basename='merchant')
+
 
 urlpatterns = [
-    # Admin Authentication
-    path("auth/admins/", AdminRegistrationView.as_view(), name="admin-register"),
-
-    # Merchant Authentication
-    path("auth/merchants/", MerchantRegistrationView.as_view(), name="merchant-register"),
-    path("auth/merchants/verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
-    path("auth/merchants/signin/", MerchantLoginView.as_view(), name="merchant-login"),
+    path('', include(router.urls)),
+    path('admins/', AdminView.as_view(), name='create_superuser'), 
+    path('admins/<uuid:merchant_id>/', AdminView.as_view(), name='get_superuser'),
+    path('auth/verify-email/', MerchantViewSet.as_view({'post': 'verify_email'}), name='verify-email'),
+    path('auth/merchant/signin/', MerchantViewSet.as_view({'post': 'signin'}), name='merchant-signin'),
+    path('token/refresh', TokenRefreshView.as_view(), name='token-refresh'),
+    path('merchants/<uuid:merchant_id>/', MerchantViewSet.as_view({'get': 'retrieve'}))
+    
 ]
