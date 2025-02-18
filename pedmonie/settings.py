@@ -56,12 +56,15 @@ INSTALLED_APPS = [
     'dashboard',
     'wallets',
     'orders',
+    'corsheaders',
+
 ]
 
 # custom user model setting
 AUTH_USER_MODEL = 'authentication.Merchant'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -207,6 +210,7 @@ EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
 EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
 DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
 
+FRONTEND_URL = 'http://localhost : 3000'
 
 
 LOGGING = {
@@ -234,7 +238,7 @@ LOGGING = {
     },
 }
 
-
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 
