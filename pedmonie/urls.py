@@ -33,15 +33,7 @@ from authentication.views import CustomTokenObtainPairView
 # add url to accept expired JWT refresh token & return new JWT token
 urlpatterns = [
     path('admin/', admin.site.urls),
-<<<<<<< HEAD
     path('api/v1/', include('authentication.urls')),
-    path('api/v1/', include('dashboard.urls')),
-    path('api/v1/', include('wallets.urls')),
-    path('api/v1/', include('orders.urls')),
-
-]
-=======
-    path('', include('authentication.urls')),
     path('api/v1/', include('dashboard.urls')),
     path("api/v1/", include("payments.urls")),
     path("support/", include("support.urls")), 
@@ -50,4 +42,3 @@ urlpatterns = [
     path('api/v1/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
->>>>>>> origin/dev
