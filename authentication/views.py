@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 # provide permission classes & HTTP status codes for API endpoints
 # https://www.django-rest-framework.org/tutorial/3-class-based-views/#using-generic-class-based-views
-from rest_framework import permissions, status
+from rest_framework import permissions, status, viewsets
 
 # use JWT token-based authentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -18,7 +18,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Merchant
 
 # import serializer for superuser (Admin) user operations
-from .serializers import AdminSerializer
+from .serializers import AdminSerializer, MerchantRegistrationSerializer, MerchantProfileSerializer, MerchantLoginSerializer, VerifyEmailSerializer
 
 # import Django's exception for handling objects that do not exist
 from django.core.exceptions import ObjectDoesNotExist 
@@ -28,6 +28,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 # import custom serializer for a custom view to obtain a token 
 from .serializers import CustomTokenObtainPairSerializer
+
+
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 ###############################################################################################################
 

@@ -9,6 +9,10 @@ import uuid
 # provide core user functionality, user creation, support for permissions & groups, respectively
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
+
+from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
+
 ##########################################################################################################
 
 # add MerchantManager for custom user & superuser creation (modify the merchant model for admin users)
@@ -107,7 +111,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=50)
     business_name = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=100)
+    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
+    phone = models.CharField(max_length=15)
     
     # account status & role
     is_email_verified = models.BooleanField(default=False)    
@@ -135,6 +140,11 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # custom manager for creating users & superusers
     objects = MerchantManager()
 
+    #Added id property for SimpleJWT compatibility
+    @property
+    def id(self):
+        return self.merchant_id  
+
     # specify email as the login identifier
     USERNAME_FIELD = 'email'
 
@@ -151,6 +161,11 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         # set merchant permissions
         permissions = [ # Onome e.g. manage balance###############
             ("manage_balance", "Can manage merchant balance")
+            ("verify_kyc", "Can verify merchant KYC details"),
+            ("manage_orders", "Can manage merchant orders"),
+            ("manage_wallets", "Can manage merchant wallets"),
+            ("manage_transactions", "Can manage merchant transactions"),
+            ("manage_merchants", "Can manage other merchants"),
         ] 
         default_related_name = 'merchants' # this fixes relationship clash
 
