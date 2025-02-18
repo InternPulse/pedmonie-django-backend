@@ -3,8 +3,8 @@ import uuid
 import string
 from django.conf import settings
 import redis
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+# from sendgrid import SendGridAPIClient
+# from sendgrid.helpers.mail import Mail
 import logging
 from rest_framework import response
 from django.core.mail import send_mail
