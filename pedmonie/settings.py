@@ -94,28 +94,19 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')  # Default sender email
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication', # enable session authentication
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.BrowsableAPIRenderer',
-        'rest_framework.renderers.JSONRenderer',  # optional to support JSON response as well
-    ),
 }
 
-
-
-# JWT settings
-# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
-    "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'merchant_id',
 }
 
 TEMPLATES = [
