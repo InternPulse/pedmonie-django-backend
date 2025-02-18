@@ -7,6 +7,10 @@ from .models import Merchant
 # customise TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+# imports to display the expiration timestamps for access JWT & refresh JWT
+from django.conf import settings
+from datetime import datetime
+
 ###############################################################################################################
 
 # create a serializer for admin users
@@ -130,11 +134,24 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         :param attrs: Dictionary of fields values to validate
         :type attrs: dict
-        :return: Validated data with merchant_id included
+        :return: Validated data with merchant_id & expiration times for JWT tokens
         :rtype: dict
         """
         # call parent class's validate() method to perform default JWT validation & get token data
-        data = super().validate(attrs)
+        data = super().validate(attrs)        
+
+        # get the current time
+        current_time = datetime.now()
+
+        # calcalate expiration times for access & refresh tokens
+        # access the expiration period for the JWT tokens in settings.py
+        access_token_expiration = current_time + settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
+        refresh_token_expiration = current_time + settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME']
+
+        # format timestamps 
+        # add timestamps to the data dictionary so it can be returned
+        data['refresh_token_expires_at'] = refresh_token_expiration.strftime('%d-%m-%Y %H:%M:%S')
+        data['access_token_expires_at'] = access_token_expiration.strftime('%d-%m-%Y %H:%M:%S')
 
         # add merchant_id to the response
         data['merchant_id'] = str(self.user.merchant_id)
