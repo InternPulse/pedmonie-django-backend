@@ -9,9 +9,16 @@ import uuid
 # provide core user functionality, user creation, support for permissions & groups, respectively
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
+<<<<<<< HEAD
 from django.utils.translation import gettext_lazy as _
 
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
+=======
+
+from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
+
+>>>>>>> origin/dev
 ##########################################################################################################
 
 # add MerchantManager for custom user & superuser creation (modify the merchant model for admin users)
@@ -106,11 +113,19 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # basic user info
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+<<<<<<< HEAD
     first_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)], default='')   
     last_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
     middle_name = models.CharField(max_length=50, blank=True, help_text=_('(Optional)'))
     business_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
     email = models.EmailField(max_length=50, unique=True, validators=[EmailValidator()])
+=======
+    first_name = models.CharField(max_length=50)
+    middle_name = models.CharField(max_length=50, blank=True) # allow middle name to be empty in form
+    last_name = models.CharField(max_length=50)
+    business_name = models.CharField(max_length=50)
+    email = models.EmailField(unique=True)
+>>>>>>> origin/dev
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
     phone = models.CharField(max_length=15)
     
@@ -145,6 +160,11 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # custom manager for creating users & superusers
     objects = MerchantManager()
 
+    #Added id property for SimpleJWT compatibility
+    @property
+    def id(self):
+        return self.merchant_id  
+
     # specify email as the login identifier
     USERNAME_FIELD = 'email'
 
@@ -159,14 +179,22 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # fix: specify different related_name value for Merchant model to avoid clashing with User model relationships
     class Meta:
         # set merchant permissions
+<<<<<<< HEAD
         permissions = [ 
             ("manage_balance", "Can manage merchant balance"),
+=======
+        permissions = [ # Onome e.g. manage balance###############
+            ("manage_balance", "Can manage merchant balance")
+>>>>>>> origin/dev
             ("verify_kyc", "Can verify merchant KYC details"),
             ("manage_orders", "Can manage merchant orders"),
             ("manage_wallets", "Can manage merchant wallets"),
             ("manage_transactions", "Can manage merchant transactions"),
             ("manage_merchants", "Can manage other merchants"),
+<<<<<<< HEAD
     
+=======
+>>>>>>> origin/dev
         ] 
         default_related_name = 'merchants' # this fixes relationship clash
 

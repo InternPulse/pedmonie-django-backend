@@ -9,15 +9,14 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/dev
 import environ
 from pathlib import Path
 from datetime import timedelta
 import os
-
-
-
-
-
 
 
 
@@ -30,11 +29,13 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# LOAD SECRET_KEY from .env
+SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
+
+
+# LOAD DEBUG mode FOR DEVELOPMENT from .env
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -54,10 +55,11 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',  # JWT Authentication !!! Do not edit
     'authentication',
     'dashboard',
+    'payments',
+    'support',
     'wallets',
     'orders',
     'corsheaders',
-
 ]
 
 # custom user model setting
@@ -77,8 +79,12 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'pedmonie.urls'
 
 # configure django rest framework settings
-# use JWT authentication for API requesrs
+# use JWT authentication for API requests
+# - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
 # require authentication for all views by default
+# add versioning globally
+# https://www.django-rest-framework.org/api-guide/versioning/#configuring-the-versioning-scheme
+# https://www.django-rest-framework.org/api-guide/versioning/#other-versioning-settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -86,15 +92,25 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning', # request.version should return 1
+    'DEFAULT_VERSION': 'v1', # DRF expects version numbers without prefixes e.g. 'v', else it would duplicate into /api/vv1/
+    'ALLOWED_VERSIONS': ['v1'],
+    'VERSION_PARAM': 'version',
 }
 
+
+# JWT settings
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+# set token lifetime
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
     'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'merchant_id',
+    "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
+    "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
 }
 
 TEMPLATES = [
@@ -119,25 +135,35 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': 'your_db',  # Change to your DB name
-#        'USER': 'your-username',         # Change to your MySQL username
-#        'PASSWORD': 'your-password',  # Change to your MySQL password
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
-#    }
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+#         'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+#         'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+#         'HOST': config('DB_HOST', default='localhost'),
+#         'PORT': config('DB_PORT', default='3306'),
+#     }
 # }
 
 
+
+
+
+DATABASES = {
+   'default': {
+       'ENGINE': 'django.db.backends.mysql',
+       'NAME': 'your_db',  # Change to your DB name
+       'USER': 'your-username',         # Change to your MySQL username
+       'PASSWORD': 'your-password',  # Change to your MySQL password
+       'HOST': '127.0.0.1',
+       'PORT': '3306',
+   }
+}
+
+
+ 
+    
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -185,6 +211,7 @@ REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
 REDIS_DB = 0
 
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.redis.RedisCache",
@@ -201,16 +228,25 @@ EMAIL_VERIFICATION_TIMEOUT = 300  # 5 minutes
 VERIFICATION_CODE_LENGTH = 6
 
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
-EMAIL_PORT = 465  # Port for SSL
-EMAIL_USE_SSL = True  # Use SSL for secure connection
-EMAIL_USE_TLS = False  # TLS should be False if SSL is True
-EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
-EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
-DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
+# EMAIL_PORT = 465  # Port for SSL
+# EMAIL_USE_SSL = True  # Use SSL for secure connection
+# EMAIL_USE_TLS = False  # TLS should be False if SSL is True
+# EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
+# EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
+# DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
 
 FRONTEND_URL = 'http://localhost : 3000'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int) 
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool) 
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)  
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD') 
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+FRONTEND_URL = 'http://localhost :3000'
 
 
 LOGGING = {
@@ -241,34 +277,4 @@ LOGGING = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 
-
-
-
-# EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
-# SENDGRID_API_KEY = 'os.environ.get('SENDGRID_API_KEY')
-# SENDGRID_SANDBOX_MODE_IN_DEBUG = True  # Set to False to send actual emails in development
-# DEFAULT_FROM_EMAIL = 'your@email.com'
-
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = "smtp.hostinger.com"
-# EMAIL_PORT = 465
-# EMAIL_USE_SSL = False
-# EMAIL_USE_TLS = False
-# EMAIL_HOST_USER = "info@prudytelecom.com.ng"  
-# EMAIL_HOST_PASSWORD = env("EMAIL_APP_PASSWORD")  # Load from .env file
-# FROM_EMAIL = EMAIL_HOST_USER
-# EMAIL_SSL_CERTFILE = None
-# EMAIL_SSL_KEYFILE = None
-# EMAIL_TIMEOUT = 30
-# EMAIL_SSL_CIPHER_STRING = 'HIGH:!DH:!aNULL'
-# EMAIL_SSL_CHECK_HOSTNAME = False
-# EMAIL_SSL_VERIFY_CRT = False
-
-
-# from authentication.utils import get_hostinger_cert
-# SMTP_CERT = get_hostinger_cert()
-# print("Fetched SMTP Certificate:", SMTP_CERT)       #Debug output
-# if SMTP_CERT:
-#     if EMAIL_SSL_CERTFILE:
-#         with open(EMAIL_SSL_CERTFILE, 'w') as f:
-#             f.write(SMTP_CERT)
+CORS_ALLOW_ALL_ORIGINS = True
