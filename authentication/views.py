@@ -141,7 +141,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
             merchant = authenticate(email=email, password=password)
 
             if merchant:
-                if not merchant.is_email_verifed:
+                if not merchant.is_email_verified:
                     #generate a  new verification token and send email again
                     verification_token = generate_verification_token()
                     if store_verification_token(merchant.email, verification_token):
