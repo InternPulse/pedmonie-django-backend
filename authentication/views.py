@@ -1,4 +1,12 @@
-from django.shortcuts import render
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from authentication.models import Merchant
+from authentication.serializers import AdminSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from authentication.utils import generate_otp, send_otp_email
+from django.core.cache import cache  # Store OTP temporarily in Django cache
 
 # API view allows for message customisation without overriding methods
 # using it since there are 2 endpoints: create, retrieve

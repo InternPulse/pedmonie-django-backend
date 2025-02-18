@@ -1,6 +1,11 @@
 from django.urls import path
+from .views import MerchantListView, MerchantDetailView, DashboardAuditLogsView
 
 urlpatterns = [
-    # Example route (please replace this with actual dashboard endpoints)
-    # path('api/v1/dashboard/', DashboardView.as_view(), name='dashboard'),
+    # Admin Merchant Management
+    path("admins/merchants/", MerchantListView.as_view(), name="list-merchants"),
+    path("admins/merchants/<uuid:merchant_id>/", MerchantDetailView.as_view(), name="get-merchant"),
+
+    # Admin Logs
+    path("admins/logs/", DashboardAuditLogsView.as_view(), name="admin-logs"),
 ]
