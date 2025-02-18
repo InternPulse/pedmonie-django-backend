@@ -2,35 +2,27 @@
 
 ## Project Overview
 
-The Pedmonie Django Backend API is a Django-based analytics service designed to provide insights into critical business areas, including:
+**PedMonie – Payment Integration App**  
 
-- **Sales Performance Analytics**  
-  - **Revenue Trends:** Track overall sales performance over time (e.g., daily, weekly, monthly, quarterly). Show revenue growth or decline trends to help vendors understand performance.  
-  - **Sales by Product:** Display which renewable energy products (solar panels, wind turbines, batteries, etc.) are generating the most revenue.  
-  - **Sales by Region/Location:** Identify which geographic areas or markets are generating the most sales, useful for targeting specific regions.  
-  - **Sales by Time of Year:** Renewable energy products may have seasonal trends (e.g., increased sales in summer for solar products). Track sales spikes or dips during different times of the year.  
+PedMonie is a Django-based payment integration app that leverages the Django REST Framework, built-in authentication, and JWT for secure API authentication. It provides a structured API with endpoints across multiple apps:  
 
-- **Product Performance Analytics**  
-  - **Top-Selling Products:** List products that are selling the most, helping vendors understand demand patterns.  
-  - **Product Views and Engagement:** Track how many views or interactions a product page receives, which can help understand customer interest even if sales haven’t been made yet.  
-  - **Profit Margin by Product:** Show how profitable each product is by calculating the margin between cost and sales price.  
+- **Authentication** – User registration, login, and JWT-based authentication.  
+- **Dashboard** – User and admin dashboards for transaction insights.  
+- **Orders** – Order creation, tracking, and management.  
+- **Payments** – Payment processing, transaction history, and status tracking.  
+- **Support** – Customer support ticketing and inquiry handling.  
+- **Wallets** – Digital wallet management, fund transfers, and balance tracking.  
 
-- **Marketing & Conversion Analytics**  
-  - **Cart Abandonment Rate:** Track how many customers add products to the cart but leave without purchasing.  
-
-- **Profitability & Financial Analytics**  
-  - **Gross Profit and Net Profit:** Track gross and net profits over time, showing how operational costs are affecting profitability.  
-
-It empowers businesses with advanced features such as filtering, data aggregation, and reporting to optimize strategies and monitor key metrics effectively.
-
+PedMonie ensures seamless payment handling with secure authentication and robust API endpoints for a smooth financial experience.
 
 ## Live Link
 
-[API Live Demo](https://codebrewmaster.pythonanywhere.com/api/v1)
+[API Live Demo currently unavailable]()
 
 ## Documentation Link
 
-[Postman API Documentation](https://documenter.getpostman.com/view/36548151/2sAYBPmZm1)
+Postman API Documentation for the JWT generation, creation of a Superuser, retrieving the data of a Superuser [here](https://documenter.getpostman.com/view/41687429/2sAYXFhxLC).
+Postman API Documentation for the User Dashboard Wallet & Transactions [here](https://documenter.getpostman.com/view/41687429/2sAYdZsYhv).
 
 ---
 
@@ -44,7 +36,7 @@ Ensure the following tools are installed:
 - pip (Python package manager)
 - Git
 - Virtual environment tool (e.g., `venv` or `virtualenv`)
-- PostgreSQL
+- MySQL
 
 ### How to Run the API Locally
 
@@ -81,13 +73,19 @@ Ensure the following tools are installed:
     python manage.py migrate
     ```
 
-5. **Start the server:**
+5. **Create a superuser**
+
+    ```bash
+    python manage.py createsuperuser
+    ```
+
+6. **Start the server:**
 
     ```bash
     python manage.py runserver
     ```
 
-    The API will be available at `http://127.0.0.1:8000/`.
+    The API will be available at `http://127.0.0.1:8000`.
 
 ---
 
@@ -153,10 +151,10 @@ DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
 
 # PostgreSQL
-DB_NAME=your-database-name
-DB_USER=your-database-user
-DB_PASSWORD=your-database-password
-DB_HOST=localhost
+DB_NAME=your_db_name
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=your_db_host
 DB_PORT=5432
 ```
 
