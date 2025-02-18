@@ -16,6 +16,12 @@ class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAdminUser]
     pagination_class = OrderPagination  # Adding pagination
+    
+    
+    def retrieve(self, request, pk=None):
+        order = self.get_object()
+        serializer = self.get_serializer(order)
+        return Response({'message': 'order retrieved successfully', 'data': serializer.data})
 
     def partial_update(self, request, *args, **kwargs):
         try:
