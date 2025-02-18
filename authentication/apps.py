@@ -1,6 +1,5 @@
 from django.apps import AppConfig
-from django.core.mail import send_mail
-from authentication.utils import send_test_email
+
 
 
 class AuthenticationConfig(AppConfig):
