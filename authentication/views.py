@@ -61,7 +61,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                     refresh = RefreshToken.for_user(merchant)
                     return Response({
                         'status': 'success',
-                        'message': 'Merchant registered successfully, Please cheeck your email to verify your account',
+                        'message': 'Merchant registered successfully, Please check your email to verify your account',
                         'data': {
                             'merchant_id': merchant.merchant_id,
                             'email': merchant.email,

@@ -117,7 +117,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # account status & role
     is_email_verified = models.BooleanField(default=False)    
     role = models.CharField(max_length=20, choices=[('merchant', 'Merchant'), ('superadmin', 'Super Admin')], default='merchant')
-    total_balance = models.DecimalField(max_digits=19, decimal_places=4, default=0.0)
+    # total_balance = models.DecimalField(max_digits=19, decimal_places=4, default=0.0)
     is_staff = models.BooleanField(default=False)  # Allows superadmin access to Django Admin
 
     # KYC verification fields
