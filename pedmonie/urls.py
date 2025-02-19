@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 
-# import built-in views 
+# import built-in views
 # - TokenObtainPairView to handle login with username + password & return access + refresh tokens
 # - TokenRefreshView to accept expired refresh token & return new access token
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
@@ -19,8 +19,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('authentication.urls')),
     path('api/v1/', include('dashboard.urls')),
-    path("api/v1/", include("payments.urls")),
-    path("api/v1/support/", include("support.urls")),   
+    path('api/v1/', include('payments.urls')),
+    path('api/v1/support/', include('support.urls')), 
     path('api/v1/admins/wallets/', include('wallets.urls')),
     path('api/v1/orders/', include('orders.urls')),
     path('api/v1/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),

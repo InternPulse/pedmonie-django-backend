@@ -10,7 +10,7 @@ class SupportTicket(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"Ticket {self.ticket_id} - {self.status}"
 
 class SupportMessage(models.Model):
@@ -20,5 +20,5 @@ class SupportMessage(models.Model):
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"
