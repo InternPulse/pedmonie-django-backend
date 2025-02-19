@@ -2,20 +2,31 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAdminUser
-from rest_framework.pagination import PageNumberPagination
 from .models import Order
 from .serializers import OrderSerializer
+from rest_framework.pagination import PageNumberPagination
 
-class OrderPagination(PageNumberPagination):
-    page_size = 10  # Number of orders per page
-    page_size_query_param = 'page_size'
-    max_page_size = 100
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAdminUser]
-    pagination_class = OrderPagination  # Adding pagination
+    pagination_class = PageNumberPagination  # Adding pagination
+    
+    
+    def list(self, request):
+        orders = self.get_queryset()
+
+        # Apply pagination
+        page = self.paginate_queryset(orders)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+        else:
+            # Fallback for cases without pagination
+            serializer = self.get_serializer(orders, many=True)
+            return Response({'message': 'orders retrieved successfully', 'data': serializer.data})
     
     
     def create(self, request, *args, **kwargs):
@@ -24,7 +35,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None):
         order = self.get_object()
         serializer = self.get_serializer(order)
-        return Response({'message': 'order retrieved successfully', 'data': serializer.data},status=status.HTTP_200_OK)
+        return Response({'message': 'order retrieved successfully'},status=status.HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
         try:
