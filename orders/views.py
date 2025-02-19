@@ -18,10 +18,13 @@ class OrderViewSet(viewsets.ModelViewSet):
     pagination_class = OrderPagination  # Adding pagination
     
     
+    def create(self, request, *args, **kwargs):
+        return Response({'error': 'POST requests not allowed'}, status = status.HTTP_405_METHOD_NOT_ALLOWED)
+    
     def retrieve(self, request, pk=None):
         order = self.get_object()
         serializer = self.get_serializer(order)
-        return Response({'message': 'order retrieved successfully', 'data': serializer.data})
+        return Response({'message': 'order retrieved successfully', 'data': serializer.data},status=status.HTTP_200_OK)
 
     def partial_update(self, request, *args, **kwargs):
         try:
