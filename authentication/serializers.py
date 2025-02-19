@@ -4,6 +4,12 @@ from rest_framework import serializers
 # import Merchant model from the current directory
 from .models import Merchant
 
+from .models import Merchant
+
+import hashlib
+import os
+import uuid
+
 # customise TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -158,3 +164,117 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # return data
         return data
+
+#Serializer for Merchant Registration
+
+class MerchantRegistrationSerializer(serializers.ModelSerializer):
+    """
+    This serializer handles merchant registration, including password validation 
+    and email verification token generation
+    """
+
+    #Define password fields with restrictions: write-only, minimum length of 8, and required
+    password = serializers.CharField(write_only=True, min_length=8, required=True)
+    confirm_password = serializers.CharField(write_only=True, min_length=8, required=True)
+
+    class Meta:
+        """
+        Meta class specifies the model and the fields to be serialized .
+        """
+        model = Merchant        #The serializer is linked to the Merchant Model
+
+        #Fields included in the API request
+        fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'bvn', 'email', 'phone', 'password', 'confirm_password']
+
+        #Extra fields that exist in the model but aren't required in the request
+        extra_fields = ['created_at', 'updated_at', 'role', 'total_balance', 'email_verification_code', 'is_email_verified']
+
+
+    def validate(self, data):
+        """
+        Custom validation to ensure:
+        1. Password and confirm-password match
+        2. BVN (Bank Verification Number) is provided
+        """
+
+        #Check if password match
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError({'password': 'Passwords do not match'})
+        
+        #Ensure BVN is provided
+        if not data.get('bvn'):
+            raise serializers.ValidationError({'bvn': 'BVN is required'})
+        
+        return data             #Return validated data if all checks pass
+    
+
+    def create(self, validated_data):
+        """
+        Custom method to create a new Merchant instance.
+        1. Removes the confim_password firld as it's not needed in the database.
+        2. Hashes and stores the password securely.
+        3. Creates a new Merchant instance using the 'create_user' method.
+        4. Generates and stores an email verification token.
+        5. Sends an email verificatiom message.
+        """
+
+        #Remove confirm_password since it's only needed for validation
+        validated_data.pop('confirm_password')
+
+        #Extract and remove password from  the validated data to handle it separately
+        password = validated_data.pop('password')
+
+        #Create a new Merchant instance with the provided data and hashed password
+        merchant = Merchant.objects.create_user(password=password, **validated_data)
+
+    
+        #Generate, store and send token
+        token = generate_verification_token()
+
+        #Store the token  associated with the merchant's email 
+        store_verification_token(merchant.email, token)
+
+        #Send the verification email with the generated token
+        send_verification_email(merchant.email, token)
+
+        return merchant         #Return the created merchant instance 
+
+
+#Serializer for Email Verification
+class VerifyEmailSerializer(serializers.Serializer):
+    """
+    This serializer is used for verifying a merchant's email using a token.
+    """
+
+    email = serializers.EmailField()            #The merchant's email
+    token = serializers.CharField()             #Verification token sent via email
+
+    
+       
+#Serializer for Merchant Login       
+class MerchantLoginSerializer(serializers.Serializer):
+    """
+    This serializer handles merchant login by acceptoing email and password.
+    """
+    email = serializers.EmailField(required=True)           #Email field (required)
+    password = serializers.CharField(required=True)         #Password field (required)
+
+
+
+
+#Serializer for Merchant Profile
+class MerchantProfileSerializer(serializers.ModelSerializer):
+    """
+    This serializer is used to fetch a merchant's profile details
+    """
+    class Meta:
+        """
+        Meta class specifies the Merchant model and the fields to be serialized.
+        """
+        model = Merchant        #Linking serializer to the Merchant model
+
+        #Fields included in profile response      
+        fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'email', 'phone', 'is_email_verified',
+                  'role', 'total_balance','created_at', 'updated_at'
+        ]
+
