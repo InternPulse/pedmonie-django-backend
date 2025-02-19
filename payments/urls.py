@@ -1,8 +1,8 @@
 from django.urls import path
-from .views import PaymentGatewayListView, PaymentGatewayDetailView, MerchantPaymentGatewayView
+from .views import RequestWithdrawal, MerchantWithdrawalsList, GetWithdrawalDetail
 
 urlpatterns = [
-    path("payment-gateways", PaymentGatewayListView.as_view(), name="list-payment-gateways"),
-    path("payment-gateways/<uuid:gateway_id>", PaymentGatewayDetailView.as_view(), name="get-payment-gateway"),
-    path("merchants/<uuid:merchant_id>/payment-gateways/<uuid:gateway_id>", MerchantPaymentGatewayView.as_view(), name="get-merchant-payment-gateway"),
+    path('merchants/<str:merchant_id>/withdrawals', RequestWithdrawal.as_view(), name='request-withdrawal'),
+    path('merchants/<str:merchant_id>/withdrawals', MerchantWithdrawalsList.as_view(), name='merchant-withdrawals-list'),
+    path('merchants/<str:merchant_id>/withdrawals/<int:withdrawal_id>', GetWithdrawalDetail.as_view(), name='withdrawal-detail'),
 ]
