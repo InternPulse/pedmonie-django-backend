@@ -95,9 +95,12 @@ REST_FRAMEWORK = {
 
 # JWT settings
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
+# use custom serializer to generate JWT globally across apps
+# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
 # set token lifetime
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
 SIMPLE_JWT = {
+    "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "AUTH_HEADER_TYPES": ("Bearer",),
