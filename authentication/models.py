@@ -13,6 +13,13 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 
+
+from django.utils.translation import gettext_lazy as _
+from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
+
+from django.utils.translation import gettext_lazy as _
+
+from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 ##########################################################################################################
 
 # add MerchantManager for custom user & superuser creation (modify the merchant model for admin users)
@@ -104,28 +111,32 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     :return: Merchant instance
     :rtype: Merchant
     """
-    # basic user info
+    # basic merchant info
+    
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField(max_length=50)
-    middle_name = models.CharField(max_length=50, blank=True) # allow middle name to be empty in form
-    last_name = models.CharField(max_length=50)
-    business_name = models.CharField(max_length=50)
-    email = models.EmailField(unique=True)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    first_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)], default='')   
+    last_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
+    middle_name = models.CharField(max_length=50, blank=True, help_text=_('(Optional)'))
+    business_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
+    email = models.EmailField(max_length=50, unique=True, validators=[EmailValidator()])
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
     phone = models.CharField(max_length=15)
+    password_hash = models.CharField(max_length=100) 
+    password_salt = models.CharField(max_length=100)
     
     # account status & role
     is_email_verified = models.BooleanField(default=False)    
     role = models.CharField(max_length=20, choices=[('merchant', 'Merchant'), ('superadmin', 'Super Admin')], default='merchant')
-    total_balance = models.DecimalField(max_digits=19, decimal_places=4, default=0.0)
+    # total_balance = models.DecimalField(max_digits=19, decimal_places=4, default=0.0)
     is_staff = models.BooleanField(default=False)  # Allows superadmin access to Django Admin
 
     # KYC verification fields
     nin = models.CharField(max_length=30, unique=True, null=True, blank=True)
     is_nin_verified = models.BooleanField(default=False)
-    bvn = models.CharField(max_length=30, unique=True, null=True, blank=True)
+    bvn = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_('(Bank Verification Number)'))
     is_bvn_verified = models.BooleanField(default=False)
-    cac_number = models.CharField(max_length=30, unique=True, null=True, blank=True)
+    cac_number = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_('(Corporate Affairs Commission)'))
     is_business_cac_verified = models.BooleanField(default=False)
 
     # document uploads
@@ -134,8 +145,9 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     is_kyc_verified = models.BooleanField(default=False)
 
     # timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)    
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)  
+
 
     # custom manager for creating users & superusers
     objects = MerchantManager()
@@ -143,7 +155,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     #Added id property for SimpleJWT compatibility
     @property
     def id(self):
-        return self.merchant_id  
+        return self.merchant_id
+      
 
     # specify email as the login identifier
     USERNAME_FIELD = 'email'
@@ -159,8 +172,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # fix: specify different related_name value for Merchant model to avoid clashing with User model relationships
     class Meta:
         # set merchant permissions
-        permissions = [ # Onome e.g. manage balance###############
-            ("manage_balance", "Can manage merchant balance")
+        permissions = [ 
+            ("manage_balance", "Can manage merchant balance"),
             ("verify_kyc", "Can verify merchant KYC details"),
             ("manage_orders", "Can manage merchant orders"),
             ("manage_wallets", "Can manage merchant wallets"),
@@ -168,6 +181,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
             ("manage_merchants", "Can manage other merchants"),
         ] 
         default_related_name = 'merchants' # this fixes relationship clash
+        db_table = 'merchants'
 
     # define a __str__ method for human-readable output
     # return merchant
@@ -178,3 +192,16 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         :rtype: str
         """
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_sn = Merchant.objects.order_by('-merchant_id').first()
+            if last_sn and last_sn.sn.isdigit():
+                self.sn = str(int(last_sn.sn) + 1)
+            else:
+                self.sn = "1"  # Start from 1 if no records exist
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.sn
+        
+    

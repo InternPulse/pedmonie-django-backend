@@ -1,24 +1,44 @@
-from django.db import models
-
-# Create your models here.
 import uuid
-from authentication.models import Merchant
+from django.db import models
+from authentication.models import Merchant  # Import Merchant model
 
 class PaymentGateway(models.Model):
-    gateway_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=50)
-    gateway_logo = models.ImageField(upload_to='payment_gateway_logos/')
-    created_at = models.DateTimeField(auto_now_add=True)
+    """
+    Model for storing available payment gateways.
+    """
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    gateway_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
+    gateway_name = models.CharField(max_length=100, unique=True)
+    gateway_logo = models.CharField(max_length=255)  # Store logo URL/path as a string (matches Sequelize)
+
+
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_sn = PaymentGateway.objects.order_by('-gateway_id').first()
+            if last_sn and last_sn.sn.isdigit():
+                self.sn = str(int(last_sn.sn) + 1)
+            else:
+                self.sn = "1"  # Start from 1 if no records exist
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = "paymentgateways"  # Matches Sequelize table name
 
     def __str__(self):
-        return self.name
+        return self.sn
+
+
 
 class MerchantPaymentGateway(models.Model):
-    gateway_payment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    gateway = models.ForeignKey(PaymentGateway, on_delete=models.CASCADE)
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
-    status = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    """
+    Model for storing a merchant's enabled payment gateways.
+    """
+    id = models.AutoField(primary_key=True)  # Matches Sequelize's `autoIncrement: true`
+    merchant = models.OneToOneField(Merchant, on_delete=models.CASCADE, related_name="merchant_gateways")
+    payment_gateways = models.JSONField(default=dict)  # Store JSON data for active payment gateways
+
+    class Meta:
+        db_table = "merchant_payment_gateway"  # Matches Sequelize table name
 
     def __str__(self):
-        return f"{self.merchant.business_name} - {self.gateway.name}"
+        return f"{self.merchant.business_name}'s Payment Gateways"

@@ -10,6 +10,10 @@ class SupportTicket(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'support_tickets'
+        ordering = ["-created_at"]
+
     def _str_(self):
         return f"Ticket {self.ticket_id} - {self.status}"
 
@@ -19,6 +23,10 @@ class SupportMessage(models.Model):
     sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'support_messages'
+        ordering = ["-created_at"]
 
     def _str_(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"

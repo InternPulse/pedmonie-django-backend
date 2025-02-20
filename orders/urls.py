@@ -1,6 +1,10 @@
-from django.urls import path
+from rest_framework.routers import DefaultRouter
+from .views import OrderViewSet
+from django.urls import path, include
+
+router = DefaultRouter()
+router.register(r'orders', OrderViewSet, basename='order')
 
 urlpatterns = [
-    # Example route (please replace this with actual order endpoints)
-    # path('api/v1/order/', OrderView.as_view(), name='order'),
+    path('admins/orders', include(router.urls)),
 ]
