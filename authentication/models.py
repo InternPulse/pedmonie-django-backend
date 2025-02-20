@@ -111,9 +111,10 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     :return: Merchant instance
     :rtype: Merchant
     """
-    # basic user info
+    # basic merchant info
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     first_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)], default='')   
     last_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
     middle_name = models.CharField(max_length=50, blank=True, help_text=_('(Optional)'))
@@ -121,7 +122,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=50, unique=True, validators=[EmailValidator()])
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
     phone = models.CharField(max_length=15)
-    password_hash = models.CharField(max_length=100)
+    password_hash = models.CharField(max_length=100) 
     password_salt = models.CharField(max_length=100)
     
     # account status & role
@@ -131,7 +132,6 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)  # Allows superadmin access to Django Admin
 
     # KYC verification fields
-    sn = models.IntegerField(unique=True)
     nin = models.CharField(max_length=30, unique=True, null=True, blank=True)
     is_nin_verified = models.BooleanField(default=False)
     bvn = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_('(Bank Verification Number)'))
@@ -155,7 +155,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     #Added id property for SimpleJWT compatibility
     @property
     def id(self):
-        return self.merchant_id  
+        return self.merchant_id
+      
 
     # specify email as the login identifier
     USERNAME_FIELD = 'email'
@@ -191,4 +192,16 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         :rtype: str
         """
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_sn = Merchant.objects.order_by('-merchant_id').first()
+            if last_sn and last_sn.sn.isdigit():
+                self.sn = str(int(last_sn.sn) + 1)
+            else:
+                self.sn = "1"  # Start from 1 if no records exist
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.sn
+        
     
