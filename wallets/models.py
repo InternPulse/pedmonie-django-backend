@@ -27,3 +27,34 @@ class Wallet(models.Model):
     class Meta:
         ordering = ["-createdAt"]
     
+
+class Withdrawal(models.Model):
+    withdrawal_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=19, decimal_places=4)
+    initial_balance = models.DecimalField(max_digits=19, decimal_places=4)
+    final_balance = models.DecimalField(max_digits=19, decimal_places=4)
+    status = models.CharField(max_length=20, choices=[
+        ("pending", "Pending"),
+        ("successful", "Successful"),
+        ("failed", "Failed")
+    ], default="pending")
+    createdAt = models.DateTimeField(default=timezone.now)
+    updatedAt = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Withdrawal {self.withdrawal_id} - {self.merchant.email} - {self.status}"
+    
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_withdrawal = Withdrawal.objects.order_by('-sn').first()
+            if last_withdrawal and last_withdrawal.sn.isdigit():
+                self.sn = str(int(last_withdrawal.sn) + 1)
+            else:
+                self.sn = "1"  # Start from 1 if no records exist
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        db_table = 'withdrawals'
+        ordering = ["-createdAt"]
