@@ -110,14 +110,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
-    def save(self, *args, **kwargs):
-        if not self.sn:  # Only assign if 'sn' is empty
-            last_merchant = Merchant.objects.order_by('-sn').first()
-            if last_merchant and last_merchant.sn.isdigit():
-                self.sn = str(int(last_merchant.sn) + 1)
-            else:
-                self.sn = "1"  # Start from 1 if no records exist
-        super().save(*args, **kwargs)
+    
 
     # def __str__(self):
     #     return self.sn
@@ -152,9 +145,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # timestamps
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True) 
-    # is_active = models.BooleanField(default=True)
-    # is_staff = models.BooleanField(default=False)  # Required by Django admin
-    # is_admin = models.BooleanField(default=False) 
+    
 
 
     # custom manager for creating users & superusers
@@ -200,6 +191,14 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         :rtype: str
         """
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_merchant = Merchant.objects.order_by('-sn').first()
+            if last_merchant and last_merchant.sn.isdigit():
+                self.sn = str(int(last_merchant.sn) + 1)
+            else:
+                self.sn = "1"  # Start from 1 if no records exist
+        super().save(*args, **kwargs)
     
         
     

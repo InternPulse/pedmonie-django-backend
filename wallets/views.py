@@ -12,7 +12,7 @@ class IsAdminUser(permissions.BasePermission):
         return request.user and request.user.is_staff
 
 class WalletListView(APIView):
-    authentication_classes = JWTAuthentication
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request,):
@@ -22,7 +22,7 @@ class WalletListView(APIView):
         return Response(serializer.data)
 
 class WalletDetailView(APIView):
-    authentication_classes = JWTAuthentication
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request, wallet_id):

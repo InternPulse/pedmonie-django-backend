@@ -5,7 +5,7 @@ from .models import Wallet
 class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
-        fields = ['wallet_id', 'merchant', 'amount', 'currency', 'created_at', 'updated_at']
+        fields = ['wallet_id', 'merchant', 'amount', 'currency', 'createdAt', 'updatedAt']
         
     def validate(self, data):
         """Ensure admin privileges when modifying sensitive fields."""

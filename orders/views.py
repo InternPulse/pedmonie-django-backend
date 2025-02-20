@@ -13,7 +13,7 @@ class OrderPagination(PageNumberPagination):
     max_page_size = 100
 
 class OrderViewSet(viewsets.ModelViewSet):
-    authentication_classes = JWTAuthentication
+    authentication_classes = [JWTAuthentication]
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAdminUser]

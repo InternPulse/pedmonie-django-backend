@@ -23,7 +23,7 @@ class MerchantListView(APIView):
 #  Admin gets a specific merchant, updates or deletes them
 class MerchantDetailView(APIView):
     """Retrieve, update, or delete a single merchant (Admin only)."""
-    authentication_classes = JWTAuthentication
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, merchant_id):
@@ -59,7 +59,7 @@ class MerchantDetailView(APIView):
 #  Admin gets all audit logs
 class DashboardAuditLogsView(APIView):
     """Retrieve all admin audit logs."""
-    authentication_classes = JWTAuthentication
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
