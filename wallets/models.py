@@ -65,4 +65,4 @@ class Withdrawal(models.Model):
     
     class Meta:
         db_table = 'withdrawals'
-        ordering = ["-createdAt"]
+        ordering = ["createdAt"]

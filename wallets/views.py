@@ -7,6 +7,7 @@ from authentication.models import Merchant
 from .serializers import WalletSerializer, WithdrawalSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+
 # Custom permission class to allow only admins to access wallet endpoints
 class IsAdminUser(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -15,7 +16,6 @@ class IsAdminUser(permissions.BasePermission):
 class WalletListView(APIView):
 
     authentication_classes = [JWTAuthentication]
-
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
     def get(self, request,):
@@ -132,3 +132,4 @@ class WithdrawalDetailView(APIView):
         withdrawal = get_object_or_404(Withdrawal, withdrawal_id=withdrawal_id, merchant=merchant)
         serializer = WithdrawalSerializer(withdrawal)
         return Response(serializer.data, status=status.HTTP_200_OK)
+

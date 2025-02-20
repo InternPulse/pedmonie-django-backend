@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-# import built-in views 
+# import built-in views
 # - TokenObtainPairView to handle login with username + password & return access + refresh tokens
 # - TokenRefreshView to accept expired refresh token & return new access token
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/v1/", include("support.urls")), 
     path('api/v1/', include('wallets.urls')),
     path('api/v1/', include('orders.urls')),
+    path('api/v1/', include('transactions.urls')),
     path('api/v1/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

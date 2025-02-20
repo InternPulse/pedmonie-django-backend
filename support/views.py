@@ -13,7 +13,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
   # ensure the user was authenticated before trying to access the view
 
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -28,11 +28,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
         return CreateSupportTicketSerializer
 
     def create(self, request, *args, **kwargs):
-        # if request.user.is_staff:
-        #     return Response(
-        #         {"detail": "Admins are not allowed to create support tickets."},
-        #         status=status.HTTP_403_FORBIDDEN,
-        #     )
+
         return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):

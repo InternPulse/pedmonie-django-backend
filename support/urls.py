@@ -1,5 +1,9 @@
 from django.urls import path
-from .views import SupportTicketListView, SupportTicketDetailView, SupportMessageCreateView
+from .views import (
+    SupportTicketListView,
+    SupportTicketDetailView,
+    SupportMessageCreateView,
+)
 
 
 
@@ -35,3 +39,4 @@ urlpatterns = [
         name="create-support-message",
     ),
 ]
+
