@@ -16,6 +16,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 # imports to display the expiration timestamps for access JWT & refresh JWT
 from django.conf import settings
 from datetime import datetime
+from .utils import generate_verification_token, verify_token, store_verification_token, send_verification_email
+
 
 ###############################################################################################################
 
@@ -277,4 +279,3 @@ class MerchantProfileSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'email', 'phone', 'is_email_verified',
                   'role', 'total_balance','created_at', 'updated_at'
         ]
-

@@ -9,9 +9,9 @@ class MerchantSerializer(serializers.ModelSerializer):
         fields = [
             "merchant_id", "first_name", "last_name", "business_name", "email",
             "phone", "total_balance", "is_email_verified", "is_kyc_verified",
-            "created_at"
+            "createdAt"
         ]
-        read_only_fields = ["merchant_id", "created_at"]
+        read_only_fields = ["merchant_id", "createdAt"]
 
 class AuditLogSerializer(serializers.ModelSerializer):
     """Serializes admin audit logs."""

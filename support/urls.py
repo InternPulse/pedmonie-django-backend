@@ -5,35 +5,38 @@ from .views import (
     SupportMessageCreateView,
 )
 
+
+
 urlpatterns = [
     path(
-        "merchants/tickets",
+        "merchants/support/tickets/",
         SupportTicketListView.as_view(),
         name="list-support-tickets",
     ),
     path(
-        "merchants/tickets/<uuid:ticket_id>",
+        "merchants/support/tickets/<uuid:ticket_id>/",
         SupportTicketDetailView.as_view(),
         name="get-support-ticket",
     ),
     path(
-        "merchants/tickets/<uuid:ticket_id>/messages",
+        "merchants/support/tickets/<uuid:ticket_id>/messages/",
         SupportMessageCreateView.as_view(),
         name="create-support-message",
     ),
     path(
-        "admins/tickets",
+        "admins/support/tickets/",
         SupportTicketListView.as_view(),
         name="list-support-tickets",
     ),
     path(
-        "admins/tickets/<uuid:ticket_id>",
+        "admins/support/tickets/<uuid:ticket_id>/",
         SupportTicketDetailView.as_view(),
         name="get-support-ticket",
     ),
     path(
-        "admins/tickets/<uuid:ticket_id>/messages",
+        "admins/support/tickets/<uuid:ticket_id>/messages/",
         SupportMessageCreateView.as_view(),
         name="create-support-message",
     ),
 ]
+

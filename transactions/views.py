@@ -16,6 +16,7 @@ class TransactionViewSet(viewsets.ViewSet):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
+
     def retrieve(self, request, pk=None):
         try:
             transaction = Transaction.objects.get(transaction_id=pk)
@@ -30,15 +31,19 @@ class TransactionViewSet(viewsets.ViewSet):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
 
+
     @action(detail=True, methods=['post'], url_path='refund')
+
     def refund_transaction(self, request, pk=None):
         try:
             transaction = Transaction.objects.get(transaction_id=pk)
             if transaction.status != "successful":
                 return Response({"error": "Only successful transactions can be refunded"}, status=status.HTTP_400_BAD_REQUEST)
+
             
             transaction.status = "pending"  # Simulating refund processing
             transaction.save()
             return Response({"message": "Transaction refund initiated"}, status=status.HTTP_200_OK)
         except Transaction.DoesNotExist:
             return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+
