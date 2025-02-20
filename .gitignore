@@ -136,10 +136,9 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
-certificate.pem
-conotoso.crt
-conotoso.csr
-conotoso.key
-conotoso.srl
-key.pem
+*.pem
+*.crt
+*.csr
+*.key
+*.srl
 

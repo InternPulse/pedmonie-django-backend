@@ -1,6 +1,8 @@
 from django.urls import path
+from .views import WalletListView, WalletDetailView
+
 
 urlpatterns = [
-    # Example route (please replace this with actual wallet endpoints)
-    # path('api/v1/wallet/', WalletView.as_view(), name='wallet'),
+    path('', WalletListView.as_view(), name='wallet-list'),
+    path('<str:wallet_id>/', WalletDetailView.as_view(), name='wallet-detail'),
 ]

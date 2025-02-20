@@ -114,13 +114,6 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # basic user info
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    first_name = models.CharField(max_length=50)
-    middle_name = models.CharField(max_length=50, blank=True) # allow middle name to be empty in form
-    last_name = models.CharField(max_length=50)
-    business_name = models.CharField(max_length=50)
-    email = models.EmailField(unique=True)
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
-    phone = models.CharField(max_length=15)
     first_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)], default='')   
     last_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
     middle_name = models.CharField(max_length=50, blank=True, help_text=_('(Optional)'))
@@ -128,6 +121,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=50, unique=True, validators=[EmailValidator()])
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
     phone = models.CharField(max_length=15)
+    password_hash = models.CharField(max_length=100)
+    password_salt = models.CharField(max_length=100)
     
     # account status & role
     is_email_verified = models.BooleanField(default=False)    
@@ -136,6 +131,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)  # Allows superadmin access to Django Admin
 
     # KYC verification fields
+    sn = models.IntegerField(unique=True)
     nin = models.CharField(max_length=30, unique=True, null=True, blank=True)
     is_nin_verified = models.BooleanField(default=False)
     bvn = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_('(Bank Verification Number)'))
@@ -149,13 +145,9 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     is_kyc_verified = models.BooleanField(default=False)
 
     # timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)  
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)  
 
-    #Added id property for SimpleJWT compatibility
-    @property
-    def id(self):
-        return self.merchant_id  
 
     # custom manager for creating users & superusers
     objects = MerchantManager()
@@ -179,10 +171,16 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # fix: specify different related_name value for Merchant model to avoid clashing with User model relationships
     class Meta:
         # set merchant permissions
-        permissions = [ # Onome e.g. manage balance###############
-            ("manage_balance", "Can manage merchant balance")
+        permissions = [ 
+            ("manage_balance", "Can manage merchant balance"),
+            ("verify_kyc", "Can verify merchant KYC details"),
+            ("manage_orders", "Can manage merchant orders"),
+            ("manage_wallets", "Can manage merchant wallets"),
+            ("manage_transactions", "Can manage merchant transactions"),
+            ("manage_merchants", "Can manage other merchants"),
         ] 
         default_related_name = 'merchants' # this fixes relationship clash
+        db_table = 'merchants'
 
     # define a __str__ method for human-readable output
     # return merchant

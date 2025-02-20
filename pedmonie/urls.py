@@ -36,9 +36,9 @@ urlpatterns = [
     path('api/v1/', include('authentication.urls')),
     path('api/v1/', include('dashboard.urls')),
     path("api/v1/", include("payments.urls")),
-    path("support/", include("support.urls")), 
+    path("api/v1/support/", include("support.urls")), 
     path('api/v1/admins/wallets/', include('wallets.urls')),
-    path('orders/', include('orders.urls')),
+    path('api/v1/', include('orders.urls')),
     path('api/v1/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
