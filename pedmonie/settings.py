@@ -31,10 +31,11 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
-
+# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
+SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'payments',
     'support',
+    'transactions',
 
 ]
 
@@ -88,39 +90,44 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning', # request.version should return 1
+    'DEFAULT_VERSION': 'v1', # DRF expects version numbers without prefixes e.g. 'v', else it would duplicate into /api/vv1/
+    'ALLOWED_VERSIONS': ['v1'],
+    'VERSION_PARAM': 'version',
 }
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': True,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'merchant_id',
-}
 
 # SIMPLE_JWT = {
-#     "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
-#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-#     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-#     "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
-#     "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
-#     # disable last login after token refresh as users abusing the views could slow the server, 
-#     # - creating a security risk e.g. DoS attack
-#     # - (set True if throttling is set)
-#     "UPDATE_LAST_LOGIN": False, 
-#     "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
-#     "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
-#     "AUTH_HEADER_TYPES": ("Bearer",),
-#     "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
-#     "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
-#     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+#     'ROTATE_REFRESH_TOKENS': True,
+#     'BLACKLIST_AFTER_ROTATION': True,
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+#     'USER_ID_FIELD': 'merchant_id',
 # }
+
+SIMPLE_JWT = {
+    "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
+    "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
+    # disable last login after token refresh as users abusing the views could slow the server, 
+    # - creating a security risk e.g. DoS attack
+    # - (set True if throttling is set)
+    "UPDATE_LAST_LOGIN": False, 
+    "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
+    "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
+    "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
+}
 
 # raise an error if there is no JWT_SECRET_KEY
 # use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
-# if SIMPLE_JWT["SIGNING_KEY"] is None:
-#     raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
+if SIMPLE_JWT["SIGNING_KEY"] is None:
+    raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
 TEMPLATES = [
     {
@@ -144,23 +151,23 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
     }
 }
-
-# DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': 'your_db',  # Change to your DB name
-#        'USER': 'your-username',         # Change to your MySQL username
-#        'PASSWORD': 'your-password',  # Change to your MySQL password
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
-#    }
-# }
 
 
 
@@ -210,7 +217,8 @@ REDIS_HOST = 'redis-15235.c338.eu-west-2-1.ec2.redns.redis-cloud.com'
 REDIS_PORT = 15235
 REDIS_DB = 0
 REDIS_USERNAME = "default"
-REDIS_PASSWORD = "53hoa2V9floi0trMLUZyYObRT9AbI4cw"
+REDIS_PASSWORD = config('REDIS_PASSWORD')
+# "53hoa2V9floi0trMLUZyYObRT9AbI4cw" 
 
 
 CACHES = {

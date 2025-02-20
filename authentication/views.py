@@ -201,7 +201,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 if send_verification_email(merchant.email, verification_token):
                     refresh = RefreshToken.for_user(merchant)
                     return Response({
-                        'status': 'success',
+                        'status': 'True',
                         'message': 'Merchant registered successfully, Please check your email to verify your account',
                         'data': {
                             'merchant_id': merchant.merchant_id,
