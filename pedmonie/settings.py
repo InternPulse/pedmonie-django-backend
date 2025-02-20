@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'wallets',
     'orders',
     'corsheaders',
+    'transactions',
 ]
 
 # custom user model setting

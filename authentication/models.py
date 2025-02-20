@@ -160,7 +160,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     class Meta:
         # set merchant permissions
         permissions = [ # Onome e.g. manage balance###############
-            ("manage_balance", "Can manage merchant balance")
+            ("manage_balance", "Can manage merchant balance"),
             ("verify_kyc", "Can verify merchant KYC details"),
             ("manage_orders", "Can manage merchant orders"),
             ("manage_wallets", "Can manage merchant wallets"),

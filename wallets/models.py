@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from authentication.models import Merchant  # Adjust the import if necessary
+from authentication.models import Merchant  
 
 class Wallet(models.Model):
     wallet_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

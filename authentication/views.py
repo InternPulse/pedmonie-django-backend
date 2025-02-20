@@ -143,3 +143,15 @@ class AdminView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
                 )
 
+from rest_framework import viewsets
+from authentication.models import Merchant
+from authentication.serializers import MerchantProfileSerializer
+from rest_framework.permissions import IsAuthenticated
+
+class MerchantViewSet(viewsets.ModelViewSet):
+    """
+    A simple ViewSet for viewing and editing merchants.
+    """
+    queryset = Merchant.objects.all()
+    serializer_class = MerchantProfileSerializer
+    permission_classes = [IsAuthenticated]
