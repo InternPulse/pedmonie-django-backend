@@ -15,22 +15,19 @@ class SupportTicket(models.Model):
         return f"Ticket {self.ticket_id} - {self.status}"
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = SupportTicket.objects.order_by('-ticket_id').first()
-            if last_sn and last_sn.sn.isdigit():
-                self.sn = str(int(last_sn.sn) + 1)
+            last_ST = SupportTicket.objects.order_by('-sn').first()
+            if last_ST and last_ST.sn.isdigit():
+                self.sn = str(int(last_ST.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.sn
 
 class SupportMessage(models.Model):
     message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE)
     sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
 
     def _str_(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"

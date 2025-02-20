@@ -14,12 +14,9 @@ class AuditLog(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = AuditLog.objects.order_by('-log_id').first()
-            if last_sn and last_sn.sn.isdigit():
-                self.sn = str(int(last_sn.sn) + 1)
+            last_log = AuditLog.objects.order_by('-sn').first()
+            if last_log and last_log.sn.isdigit():
+                self.sn = str(int(last_log.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.sn

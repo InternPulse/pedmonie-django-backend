@@ -13,7 +13,7 @@ import environ
 from pathlib import Path
 from datetime import timedelta
 import os
-
+from decouple import config
 
 
 
@@ -98,6 +98,29 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'merchant_id',
 }
+
+# SIMPLE_JWT = {
+#     "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
+#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+#     "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
+#     "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
+#     # disable last login after token refresh as users abusing the views could slow the server, 
+#     # - creating a security risk e.g. DoS attack
+#     # - (set True if throttling is set)
+#     "UPDATE_LAST_LOGIN": False, 
+#     "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
+#     "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
+#     "AUTH_HEADER_TYPES": ("Bearer",),
+#     "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
+#     "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
+#     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
+# }
+
+# raise an error if there is no JWT_SECRET_KEY
+# use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
+# if SIMPLE_JWT["SIGNING_KEY"] is None:
+#     raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
 TEMPLATES = [
     {

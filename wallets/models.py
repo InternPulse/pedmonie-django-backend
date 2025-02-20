@@ -17,15 +17,12 @@ class Wallet(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = Wallet.objects.order_by('-wallet_id').first()
-            if last_sn and last_sn.sn.isdigit():
-                self.sn = str(int(last_sn.sn) + 1)
+            last_wallet = Wallet.objects.order_by('-sn').first()
+            if last_wallet and last_wallet.sn.isdigit():
+                self.sn = str(int(last_wallet.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.sn
 
     class Meta:
         ordering = ["-createdAt"]
