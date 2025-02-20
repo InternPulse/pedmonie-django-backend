@@ -9,7 +9,10 @@ class PaymentGateway(models.Model):
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     gateway_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
     gateway_name = models.CharField(max_length=100, unique=True)
-    gateway_logo = models.CharField(max_length=255)  # Store logo URL/path as a string (matches Sequelize)
+    gateway_logo = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=False)
+    createdAt = models.DateTimeField(auto_now_add=True)
+    updatedAt = models.DateTimeField(auto_now=True)
 
 
     def save(self, *args, **kwargs):
@@ -34,7 +37,7 @@ class MerchantPaymentGateway(models.Model):
     Model for storing a merchant's enabled payment gateways.
     """
     id = models.AutoField(primary_key=True)  # Matches Sequelize's `autoIncrement: true`
-    merchant = models.OneToOneField(Merchant, on_delete=models.CASCADE, related_name="merchant_gateways")
+    merchant_id = models.OneToOneField(Merchant, on_delete=models.CASCADE, related_name="merchant_gateways")
     payment_gateways = models.JSONField(default=dict)  # Store JSON data for active payment gateways
 
     class Meta:

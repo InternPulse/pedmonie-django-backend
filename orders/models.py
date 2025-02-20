@@ -22,5 +22,9 @@ class Order(models.Model):
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
 
+    class Meta:
+        ordering = ['createdAt']
+        db_table = 'orders'
+
     def __str__(self):
         return self.sn
