@@ -171,7 +171,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # fix: specify different related_name value for Merchant model to avoid clashing with User model relationships
     class Meta:
         # set merchant permissions
-        permissions = [ 
+        permissions = [
             ("manage_balance", "Can manage merchant balance"),
             ("verify_kyc", "Can verify merchant KYC details"),
             ("manage_orders", "Can manage merchant orders"),

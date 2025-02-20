@@ -145,7 +145,6 @@ class AdminView(APIView):
                 )
 
 
-
 class MerchantViewSet(viewsets.ModelViewSet):
     """
     Viewset for handling all merchant operations including, registration, 
@@ -339,24 +338,4 @@ class MerchantViewSet(viewsets.ModelViewSet):
         # return get_object_or_404(Merchant, merchant_id=merchant_id)
         self.check_object_permissions(self.request, merchant)
         return merchant
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
