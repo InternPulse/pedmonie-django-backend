@@ -183,9 +183,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Redis settings
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
+REDIS_HOST = 'redis-15235.c338.eu-west-2-1.ec2.redns.redis-cloud.com'
+REDIS_PORT = 15235
 REDIS_DB = 0
+REDIS_USERNAME = "default"
+REDIS_PASSWORD = "53hoa2V9floi0trMLUZyYObRT9AbI4cw"
+
 
 CACHES = {
     "default": {
@@ -196,6 +199,7 @@ CACHES = {
         }
     }
 }
+
 
 
 

@@ -1,7 +1,3 @@
-
-from rest_framework import viewsets, status,permissions
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 import hashlib
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -76,7 +72,7 @@ class AdminView(APIView):
         if serializer.is_valid():
             # save the superuser
             # ensure only superadmins get created
-            serializer.save(role='superadmin', is_staff=True, is_superuser=True)
+            serializer.save(role='superadmin', is_staff=True, is_admin=True)
 
             # return a response with a message if the Superadmin was created        
             return Response(
@@ -116,7 +112,7 @@ class AdminView(APIView):
         try:
             # get the superadmin object
             # if the superadmin does not exist, return a 404 error
-            superadmin = Merchant.objects.get(merchant_id=merchant_id, is_superuser=True)
+            superadmin = Merchant.objects.get(merchant_id=merchant_id, is_admin=True)
 
             # serialize the superadmin object
             serializer = AdminSerializer(superadmin)
@@ -152,8 +148,20 @@ class MerchantViewSet(viewsets.ModelViewSet):
      email verification, authentication, and profile retrival 
     """
 
+    authentication_classes = [JWTAuthentication]
     queryset = Merchant.objects.all()       #Fetch all merchants from the database.
     lookup_field = 'merchant_id'            #Use 'merchant_id' instead of the default primary key for lookups
+
+    def get_authentication_class(self):
+        """
+        Return the appropriate authentication class based on the requested action.
+        """
+        auth_classes = {
+            'signin': None,
+        }
+        return auth_classes.get(self.action, JWTAuthentication)
+
+        
 
     def get_serializer_class(self):
         """

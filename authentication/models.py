@@ -14,12 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 
 
-from django.utils.translation import gettext_lazy as _
-from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 
-from django.utils.translation import gettext_lazy as _
-
-from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 ##########################################################################################################
 
 # add MerchantManager for custom user & superuser creation (modify the merchant model for admin users)
@@ -89,12 +84,12 @@ class MerchantManager(BaseUserManager):
         # Django auth-specific field to ensure superuser has admin access
         extra_fields.setdefault('is_staff', True)        
         if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
+            raise ValueError('Superadmin must have is_staff=True.')
         
         # Django auth-specific field from PermissionsMixin to ensure superuser has full system permissions
-        extra_fields.setdefault('is_superuser', True)        
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+        extra_fields.setdefault('is_admin', True)        
+        if extra_fields.get('is_admin') is not True:
+            raise ValueError('Superadmin must have is_admin=True.')
 
         # create superuser using base user creation method
         return self.create_user(email, password, **extra_fields)
@@ -146,7 +141,10 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
 
     # timestamps
     createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)  
+    updatedAt = models.DateTimeField(auto_now=True) 
+    # is_active = models.BooleanField(default=True)
+    # is_staff = models.BooleanField(default=False)  # Required by Django admin
+    # is_admin = models.BooleanField(default=False) 
 
 
     # custom manager for creating users & superusers

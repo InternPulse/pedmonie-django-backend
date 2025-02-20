@@ -3,8 +3,6 @@ import uuid
 import string
 from django.conf import settings
 import redis
-# from sendgrid import SendGridAPIClient
-# from sendgrid.helpers.mail import Mail
 import logging
 from rest_framework import response
 from django.core.mail import send_mail
@@ -21,8 +19,13 @@ redis_client = redis.Redis(
     host=settings.REDIS_HOST,
     port=settings.REDIS_PORT,
     db=settings.REDIS_DB,
-    decode_responses=True    
+    decode_responses=True,
+    username="default",
+    password="53hoa2V9floi0trMLUZyYObRT9AbI4cw",    
 )
+
+
+
 
 
 def generate_verification_token():
