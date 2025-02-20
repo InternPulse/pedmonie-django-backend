@@ -1,19 +1,18 @@
 from django.shortcuts import render
-
-# add authentication to views
 from rest_framework.permissions import IsAuthenticated
-
 from rest_framework import generics, permissions, status
 from .models import SupportTicket, SupportMessage
 from .serializers import SupportTicketSerializer, SupportMessageSerializer, CreateSupportTicketSerializer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 # Create your views here.
 
 class SupportTicketListView(generics.ListCreateAPIView):
   # ensure the user was authenticated before trying to access the view
 
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -41,6 +40,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
 
 class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
     # ensure the user was authenticated before trying to access the view
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = SupportTicket.objects.all()
     serializer_class = SupportTicketSerializer
@@ -62,6 +62,7 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
 
 class SupportMessageCreateView(generics.CreateAPIView):
     # ensure the user was authenticated before trying to access the view
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = SupportMessage.objects.all()
     serializer_class = SupportMessageSerializer

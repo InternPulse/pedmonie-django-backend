@@ -14,12 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 
 
-from django.utils.translation import gettext_lazy as _
-from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 
-from django.utils.translation import gettext_lazy as _
-
-from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
 ##########################################################################################################
 
 # add MerchantManager for custom user & superuser creation (modify the merchant model for admin users)
@@ -89,12 +84,12 @@ class MerchantManager(BaseUserManager):
         # Django auth-specific field to ensure superuser has admin access
         extra_fields.setdefault('is_staff', True)        
         if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
+            raise ValueError('Superadmin must have is_staff=True.')
         
         # Django auth-specific field from PermissionsMixin to ensure superuser has full system permissions
         extra_fields.setdefault('is_superuser', True)        
         if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+            raise ValueError('Superadmin must have is_superuser=True.')
 
         # create superuser using base user creation method
         return self.create_user(email, password, **extra_fields)
@@ -115,6 +110,10 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    
+
+    # def __str__(self):
+    #     return self.sn
     first_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)], default='')   
     last_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
     middle_name = models.CharField(max_length=50, blank=True, help_text=_('(Optional)'))
@@ -122,8 +121,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=50, unique=True, validators=[EmailValidator()])
     phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
     phone = models.CharField(max_length=15)
-    password_hash = models.CharField(max_length=100) 
-    password_salt = models.CharField(max_length=100)
+    
     
     # account status & role
     is_email_verified = models.BooleanField(default=False)    
@@ -146,7 +144,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
 
     # timestamps
     createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)  
+    updatedAt = models.DateTimeField(auto_now=True) 
+    
 
 
     # custom manager for creating users & superusers
@@ -194,14 +193,12 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = Merchant.objects.order_by('-merchant_id').first()
-            if last_sn and last_sn.sn.isdigit():
-                self.sn = str(int(last_sn.sn) + 1)
+            last_merchant = Merchant.objects.order_by('-sn').first()
+            if last_merchant and last_merchant.sn.isdigit():
+                self.sn = str(int(last_merchant.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.sn
+    
         
     

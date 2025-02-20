@@ -6,12 +6,15 @@ from authentication.models import Merchant
 from .models import PaymentGateway, MerchantPaymentGateway
 from .serializers import PaymentGatewaySerializer, MerchantPaymentGatewaySerializer
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class PaymentGatewayListView(APIView):
     """
     Retrieve all available payment gateways (Public Access)
     """
+
+    authentication_classes = [JWTAuthentication]
 
     permission_classes = [permissions.AllowAny]
 
@@ -25,7 +28,7 @@ class PaymentGatewayDetailView(APIView):
     """
     Retrieve a single payment gateway by ID
     """
-
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, gateway_id):
@@ -39,6 +42,7 @@ class AdminPaymentGatewayCreateView(APIView):
     Admin: Add a new payment gateway
     """
 
+    authentication_classes = [JWTAuthentication]    
     permission_classes = [permissions.IsAdminUser]
 
     def post(self, request):
@@ -56,7 +60,7 @@ class AdminPaymentGatewayUpdateView(APIView):
     """
     Admin: Update an existing payment gateway
     """
-
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
     def patch(self, request, gateway_id):
@@ -75,7 +79,7 @@ class MerchantPaymentGatewayView(APIView):
     """
     Retrieve or update a merchant's enabled payment gateways
     """
-
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request, merchant_id):

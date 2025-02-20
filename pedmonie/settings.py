@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'payments',
     'support',
+    'django_redis',
+    'transactions',
 
 ]
 
@@ -122,23 +124,23 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.mysql',
-#        'NAME': 'your_db',  # Change to your DB name
-#        'USER': 'your-username',         # Change to your MySQL username
-#        'PASSWORD': 'your-password',  # Change to your MySQL password
-#        'HOST': '127.0.0.1',
-#        'PORT': '3306',
-#    }
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 # }
+
+DATABASES = {
+   'default': {
+       'ENGINE': 'django.db.backends.mysql',
+       'NAME': 'your_db',  # Change to your DB name
+       'USER': 'your-username',         # Change to your MySQL username
+       'PASSWORD': 'your-password',  # Change to your MySQL password
+       'HOST': '127.0.0.1',
+       'PORT': '3306',
+   }
+}
 
 
 
