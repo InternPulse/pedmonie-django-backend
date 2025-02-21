@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 import requests
 import ssl
 from urllib.parse import urljoin
+from decouple import config
 
 
 
@@ -86,17 +87,17 @@ def send_verification_email(email, token):
     :type token: str
     """
 
-    base_url = settings.FRONTEND_URL
-    verification_url = urljoin('http://localhost : 3000', f'/verify-email?email={email}&token={token}')
+    # base_url = settings.FRONTEND_URL
+    verification_url = urljoin(config('FRONTEND_URL'), f'/verify-email?email={email}&token={token}')
     print(f'{verification_url}')
     subject = "Verify your Email Address"
     message = f"""Hello,
     Please verify your email by clicking on the link below:
     {verification_url}
-    This link will expire in {settings.EMAIL_VERIFICATION_TIMEOUT // 60} minutes.
+    This link will expire in {settings.EMAIL_VERIFICATION_TIMEOUT} minutes.
     Thank you!
     """
-    sender_email = 'info@prudytelecom.com.ng'
+    sender_email = config('FROM_EMAIL')
     try:
         send_mail(subject, message, sender_email, [email])
         logger.info(f'Verification email sent to {email}')
@@ -104,19 +105,7 @@ def send_verification_email(email, token):
     except Exception as e:
         logger.error(f'Error sending verification email: {e}')
         return False
-def send_test_email():
-    """
-    Send a test email on server restart to verify SMTP configuration.
-    """
-    subject = "SMTP Test Email from Django"
-    message = "Hello,\n\nThis is a test email sent automatically when the server restarts.\n\nThank you!"
-    sender_email = "info@prudytelecom.com.ng"
-    recipient_list = ["overdoseofgodsblessings@gmail.com"]
-    try:
-        send_mail(subject, message, sender_email, recipient_list)
-        print('Test email sent successfully!')
-    except Exception as e:
-        print(f'Error sending test email: {e}')
+
 
 
 

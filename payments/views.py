@@ -21,7 +21,11 @@ class PaymentGatewayListView(APIView):
     def get(self, request):
         gateways = PaymentGateway.objects.all()
         serializer = PaymentGatewaySerializer(gateways, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'True',
+            'message': 'All Payment gateways retrieved successfully',
+            'data': serializer.data
+            }, status=status.HTTP_200_OK)
 
 
 class PaymentGatewayDetailView(APIView):
@@ -34,7 +38,11 @@ class PaymentGatewayDetailView(APIView):
     def get(self, request, gateway_id):
         gateway = get_object_or_404(PaymentGateway, gateway_id=gateway_id)
         serializer = PaymentGatewaySerializer(gateway)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'True',
+            'message': 'PaymentGateway retrieved successfully',
+            'data': serializer.data
+            }, status=status.HTTP_200_OK)
 
 
 class AdminPaymentGatewayCreateView(APIView):
@@ -53,7 +61,10 @@ class AdminPaymentGatewayCreateView(APIView):
                 {"message": "Payment gateway added successfully", "data": serializer.data},
                 status=status.HTTP_201_CREATED,
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'status': 'False',
+            'data':serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AdminPaymentGatewayUpdateView(APIView):
@@ -68,9 +79,11 @@ class AdminPaymentGatewayUpdateView(APIView):
         serializer = PaymentGatewaySerializer(gateway, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                {"message": "Payment gateway updated successfully", "data": serializer.data},
-                status=status.HTTP_200_OK,
+            return Response({
+                'status': 'True',
+                'message': 'Payment gateway updated successfully', 
+                'data': serializer.data
+                }, status=status.HTTP_200_OK,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,9 +116,10 @@ class MerchantPaymentGatewayView(APIView):
         new_gateways = merchant_gateways.payment_gateways
 
         if gateway_id not in new_gateways:
-            return Response(
-                {"error": "Payment gateway not found for this merchant"},
-                status=status.HTTP_404_NOT_FOUND,
+            return Response({
+                'status': 'False',
+                "message": "Payment gateway not found for this merchant"
+                },status=status.HTTP_404_NOT_FOUND,
             )
 
         # Toggle activation status
@@ -113,7 +127,9 @@ class MerchantPaymentGatewayView(APIView):
         merchant_gateways.payment_gateways = new_gateways
         merchant_gateways.save()
 
-        return Response(
-            {"message": "Payment gateway status updated", "payment_gateways": new_gateways},
-            status=status.HTTP_200_OK,
+        return Response({
+            'status': 'True',
+            "message": "Payment gateway status updated", 
+            "payment_gateways": new_gateways
+            },status=status.HTTP_200_OK,
         )

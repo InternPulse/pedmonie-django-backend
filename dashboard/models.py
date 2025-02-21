@@ -8,16 +8,20 @@ class AuditLog(models.Model):
     admin = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'superadmin'})  # Reference Merchant model
     action = models.TextField()  # Example: "Deleted a merchant account"
     createdAt = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        db_table = 'auditlog'
 
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_log = AuditLog.objects.order_by('-sn').first()
+            last_log = AuditLog.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
             if last_log and last_log.sn.isdigit():
                 self.sn = str(int(last_log.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
+
+    
 
     
     def __str__(self):

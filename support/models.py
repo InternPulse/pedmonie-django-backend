@@ -10,18 +10,18 @@ class SupportTicket(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
     description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'support_tickets'
-        ordering = ["created_at"]
+        ordering = ["-createdAt"]
 
     def _str_(self):
         return f"Ticket {self.ticket_id} - {self.status}"
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_ticket = SupportTicket.objects.order_by('-sn').first()
+            last_ticket = SupportTicket.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
             if last_ticket and last_ticket.sn.isdigit():
                 self.sn = str(int(last_ticket.sn) + 1)
             else:
@@ -36,11 +36,11 @@ class SupportMessage(models.Model):
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE)
     sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    createdAt = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'support_messages'
-        ordering = ["created_at"]
+        ordering = ["-createdAt"]
 
     def _str_(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"

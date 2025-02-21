@@ -18,11 +18,6 @@ from decouple import config
 
 
 
-from decouple import config
-
-
-
-
 
 
 
@@ -32,24 +27,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Initialize environment variables
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
-# Initialize environment variables
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
+
 SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['pedmonie-django-backend.onrender.com', '127.0.0.1', 'pedmonie-pedmonie.b.aivencloud.com']
 
 
 # Application definition
@@ -80,21 +68,22 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'authentication.Merchant'
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 ROOT_URLCONF = 'pedmonie.urls'
 
 # configure django rest framework settings
-# use JWT authentication for API requesrs
 # use JWT authentication for API requesrs
 # require authentication for all views by default
 REST_FRAMEWORK = {
@@ -109,7 +98,6 @@ REST_FRAMEWORK = {
     'ALLOWED_VERSIONS': ['v1'],
     'VERSION_PARAM': 'version',
 }
-
 
 
 
@@ -136,7 +124,6 @@ SIMPLE_JWT = {
 if SIMPLE_JWT["SIGNING_KEY"] is None:
     raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -159,14 +146,7 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+
 
 DATABASES = {
     'default': {
@@ -174,11 +154,10 @@ DATABASES = {
         'NAME': config('DB_NAME'),  # Change to your DB name in .env file
         'USER': config('DB_USER'),         # Change to your MySQL username in .env file
         'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
-
 
 
 
@@ -218,24 +197,40 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
+
+# https://help.pythonanywhere.com/pages/DjangoStaticFiles#set-static_root-in-settingspy
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# more places for collectstatic to find static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# whitenoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# create an empty static directory if it does not exist
+if not os.path.exists(os.path.join(BASE_DIR, 'static')):
+    os.makedirs(os.path.join(BASE_DIR, 'static'))
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #Redis settings
-REDIS_HOST = 'redis-15235.c338.eu-west-2-1.ec2.redns.redis-cloud.com'
-REDIS_PORT = 15235
-REDIS_DB = 0
-REDIS_USERNAME = "default"
+REDIS_HOST = config('REDIS_HOST')
+REDIS_PORT = config('REDIS_PORT')
+REDIS_DB = config('REDIS_DB')
+REDIS_USERNAME = config('REDIS_USERNAME')
 REDIS_PASSWORD = config('REDIS_PASSWORD')
 
 
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "BACKEND": config('REDIS_CACHE_BACKEND'),
+        "LOCATION": config('REDIS_CACHE_LOCATION'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -245,22 +240,20 @@ CACHES = {
 
 
 
+EMAIL_VERIFICATION_TIMEOUT = config('EMAIL_VERIFICATION_TIMEOUT') 
+VERIFICATION_CODE_LENGTH = config('VERIFICATION_CODE_LENGTH')
 
-EMAIL_VERIFICATION_TIMEOUT = 300  # 5 minutes
-VERIFICATION_CODE_LENGTH = 6
 
-
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = config('EMAIL_BACKEND')
 EMAIL_HOST = config('EMAIL_HOST')
 EMAIL_PORT = config('EMAIL_PORT')
-EMAIL_USE_SSL= config('EMAIL_USE_SSL')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS')
+EMAIL_USE_SSL = config('EMAIL_USE_SSL')
+EMAIL_USE_TLS = False
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+FROM_EMAIL = config('FROM_EMAIL')
 
-FRONTEND_URL = 'http://localhost : 3000'
-FRONTEND_URL = 'http://localhost : 3000'
+FRONTEND_URL = config('FRONTEND_URL')
 
 
 LOGGING = {
@@ -289,4 +282,7 @@ LOGGING = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://pedmonie-django-backend.onrender.com"
+]
 

@@ -193,7 +193,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_merchant = Merchant.objects.order_by('-sn').first()
+            last_merchant = Merchant.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
             if last_merchant and last_merchant.sn.isdigit():
                 self.sn = str(int(last_merchant.sn) + 1)
             else:

@@ -72,7 +72,7 @@ class AdminView(APIView):
         if serializer.is_valid():
             # save the superuser
             # ensure only superadmins get created
-            serializer.save(role='superadmin', is_staff=True, is_admin=True)
+            serializer.save(role='superadmin', is_staff=True, is_superuser=True)
 
             # return a response with a message if the Superadmin was created        
             return Response(
@@ -112,7 +112,7 @@ class AdminView(APIView):
         try:
             # get the superadmin object
             # if the superadmin does not exist, return a 404 error
-            superadmin = Merchant.objects.get(merchant_id=merchant_id, is_admin=True)
+            superadmin = Merchant.objects.get(merchant_id=merchant_id, is_superuser=True)
 
             # serialize the superadmin object
             serializer = AdminSerializer(superadmin)
@@ -120,7 +120,7 @@ class AdminView(APIView):
             # return a response with the serialized data
             return Response(
                 {
-                    "status": "success",
+                    "status": "True",
                     "code": 200,
                     "message": f"Successfully retrieved the Superadmin merchant with ID: {merchant_id}.",
                     "data": serializer.data,
@@ -132,7 +132,7 @@ class AdminView(APIView):
             # return a response with a message if the Superadmin does not exist
             return Response(
                 {
-                    "status": "error",
+                    "status": "False",
                     "code": 404,
                     "message": "A Superadmin with this merchant ID does not exist.",
                     "data": None,
@@ -192,7 +192,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            merchant = serializer.save()  #Creates a new merchant using MerchantManager
+            merchant = serializer.save()  
 
 
             #Generate and store an email verification token
@@ -200,6 +200,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
             if store_verification_token(merchant.email, verification_token):
                 if send_verification_email(merchant.email, verification_token):
                     refresh = RefreshToken.for_user(merchant)
+                    
                     return Response({
                         'status': 'True',
                         'message': 'Merchant registered successfully, Please check your email to verify your account',
@@ -227,7 +228,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
         return Response({
-            'status': 'error',
+            'status': 'False',
             'message': 'Registration failed',
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
@@ -242,7 +243,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         
         if not email or not token:
             return Response({
-                'status': 'error',
+                'status': 'False',
                 'message': 'Email and token are required'
             }, status=status.HTTP_400_BAD_REQUEST)
         
@@ -252,19 +253,20 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 merchant = Merchant.objects.get(email=email)
                 merchant.is_email_verified = True
                 merchant.save()
+                
 
                 return Response({
-                    'status': 'success',
+                    'status': 'True',
                     'message': 'Email verified successfully'
                 }, status=status.HTTP_200_OK)
             except Merchant.DoesNotExist:
                 return Response({
-                    'status': 'error',
+                    'status': 'False',
                     'message': 'Merchant not found'
                 }, status=status.HTTP_404_NOT_FOUND)
         
         return Response({
-            'status': 'error',
+            'status': 'False',
             'message': 'Invalid or expired verification token'
         }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -293,7 +295,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                     }, status=status.HTTP_403_FORBIDDEN)
                 refresh = RefreshToken.for_user(merchant)
                 return Response({
-                    'status': 'success',
+                    'status': 'True',
                     'message': 'Login successful',
                     'data': {
                         'access_token': str(refresh.access_token),
@@ -306,7 +308,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_200_OK)
             
         return Response({
-            'status': 'error',
+            'status': 'False',
             'message': 'Invalid credentials'
         }, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -319,18 +321,18 @@ class MerchantViewSet(viewsets.ModelViewSet):
         #Check if the requesting user is the profile owner
         if not request.user.is_authenticated or request.user.merchant_id != instance.merchant_id:
             return Response({
-                'status': 'error',
+                'status': 'False',
                 'message': 'Access denied: You do not have permission to view this profile'
             }, status=status.HTTP_403_FORBIDDEN)
         if not instance.is_email_verified:
             return Response({
-                'status': 'error',
+                'status': 'False',
                 'message': 'Please verify your email before accessing your profile'
             }, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(instance)
         return Response({
-            'status': 'success',
+            'status': 'True',
             'message': 'Merchant profile retrieved successfully',
             'data': serializer.data
         }, status=status.HTTP_200_OK)

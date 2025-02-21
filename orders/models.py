@@ -4,7 +4,6 @@ import uuid
 
 class Order(models.Model):
     order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     gateway_name = models.CharField(max_length=50)
     merchant_id = models.ForeignKey(Merchant, on_delete=models.PROTECT, related_name='orders')
@@ -16,9 +15,9 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = Order.objects.order_by('-order_id').first()
-            if last_sn and last_sn.sn.isdigit():
-                self.sn = str(int(last_sn.sn) + 1)
+            last_order = Order.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
+            if last_order and last_order.sn.isdigit():
+                self.sn = str(int(last_order.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
@@ -27,5 +26,4 @@ class Order(models.Model):
         ordering = ['createdAt']
         db_table = 'orders'
 
-    def __str__(self):
-        return self.sn
+    
