@@ -1,21 +1,17 @@
 # import serializers to convert complex datatypes like django model to pyhton datatypes that can be easily rendered in JSON, XML, etc
 from rest_framework import serializers
-
 # import Merchant model from the current directory
 from .models import Merchant
-
-from .models import Merchant
-
 import hashlib
 import os
 import uuid
-
 # customise TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
 # imports to display the expiration timestamps for access JWT & refresh JWT
 from django.conf import settings
 from datetime import datetime
+from .utils import generate_verification_token, verify_token, store_verification_token, send_verification_email
+
 
 ###############################################################################################################
 
@@ -68,11 +64,11 @@ class AdminSerializer(serializers.ModelSerializer):
         :rtype: dict
         """        
         request = self.context.get('request')
-        if request and not request.user.is_superuser:
+        if request and not request.user.is_admin:
             # Prevent non-superusers from editing certain fields
-            for field in ['is_staff', 'is_superuser', 'is_email_verified', 'is_nin_verified', 'is_bvn_verified', 'is_business_cac_verified', 'is_kyc_verified']:
+            for field in ['is_staff', 'is_admin', 'is_email_verified', 'is_nin_verified', 'is_bvn_verified', 'is_business_cac_verified', 'is_kyc_verified']:
                 if field in data:
-                    raise serializers.ValidationError(f"Only superusers can edit the '{field}' field.")
+                    raise serializers.ValidationError(f"Only superadmin can edit the '{field}' field.")
         
         # return the dict containing the fields & values sent in the request body to update/create a merchant
         return data
@@ -124,12 +120,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # add custom claims to token payload
         # avoid sensitive data + mutable data, include claims for user ID, authorisation checks, frequently accessed user info
         # public custom claims
-        token['merchant_id'] = str(user.merchant_id)
+        # token['merchant_id'] = str(user.merchant_id)
         token['email'] = user.email
-        token['role'] = user.role
+        # token['role'] = user.role
         # private custom claims
-        token['is_staff'] = user.is_staff
-        token['is_superuser'] = user.is_superuser        
+        # token['is_staff'] = user.is_staff
+        # token['is_admin'] = user.is_superuser 
+        
+        del token['user_id']       
 
         # return token    
         return token    
@@ -160,7 +158,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['access_token_expires_at'] = access_token_expiration.strftime('%d-%m-%Y %H:%M:%S')
 
         # add merchant_id to the response
-        data['merchant_id'] = str(self.user.merchant_id)
+        # data['merchant_id'] = str(self.user.merchant_id)
 
         # return data
         return data
@@ -277,4 +275,3 @@ class MerchantProfileSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'email', 'phone', 'is_email_verified',
                   'role', 'total_balance','created_at', 'updated_at'
         ]
-

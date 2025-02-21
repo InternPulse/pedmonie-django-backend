@@ -9,28 +9,44 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
 import environ
 from pathlib import Path
 from datetime import timedelta
 import os
 from decouple import config
 
-###########################################################################################################################################################
+
+
+
+from decouple import config
+
+
+
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-
-# LOAD SECRET_KEY from .env
+# SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
+# SECURITY WARNING: keep the secret key used in production secret!
+# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
 SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
-
-
-# LOAD DEBUG mode FOR DEVELOPMENT from .env
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = True
+# SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = True
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
@@ -49,20 +65,27 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',  # JWT Authentication !!! Do not edit
-    'rest_framework_simplejwt.token_blacklist', # blacklist JWT refresh tokens
     'authentication',
     'dashboard',
-    'payments',
-    'support',
     'wallets',
     'orders',
     'corsheaders',
+    'payments',
+    'support',
+    'transactions',
+
+    'payments',
+    'support',
+    'transactions',
+
 ]
 
 # custom user model setting
 AUTH_USER_MODEL = 'authentication.Merchant'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -74,27 +97,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'pedmonie.urls'
 
-
-# SMTP Email Configuration
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config('EMAIL_HOST')  # Your SMTP host
-EMAIL_PORT = config('EMAIL_PORT')  # Port for SSL
-EMAIL_USE_SSL = True  # Use SSL for secure connection
-EMAIL_USE_TLS = False  # TLS should be False if SSL is True
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')  # Your email
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')  # Your SMTP password
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')  # Default sender email
-
-
-
-
 # configure django rest framework settings
-# use JWT authentication for API requests
-# - https://django-rest-framework-simplejwt.readthedocs.io/en/latest/getting_started.html#project-configuration
+# use JWT authentication for API requesrs
+# use JWT authentication for API requesrs
 # require authentication for all views by default
-# add versioning globally
-# https://www.django-rest-framework.org/api-guide/versioning/#configuring-the-versioning-scheme
-# https://www.django-rest-framework.org/api-guide/versioning/#other-versioning-settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -108,16 +114,41 @@ REST_FRAMEWORK = {
     'VERSION_PARAM': 'version',
 }
 
-# JWT settings
-# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html#settings
-# use custom serializer to generate JWT globally across apps
-# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
-# set token lifetime
-# https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+#     'ROTATE_REFRESH_TOKENS': True,
+#     'BLACKLIST_AFTER_ROTATION': True,
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+#     'USER_ID_FIELD': 'merchant_id',
+# }
+
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+#     'ROTATE_REFRESH_TOKENS': True,
+#     'BLACKLIST_AFTER_ROTATION': True,
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+#     'USER_ID_FIELD': 'merchant_id',
+# }
+
 SIMPLE_JWT = {
     "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
+    "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
+    # disable last login after token refresh as users abusing the views could slow the server, 
+    # - creating a security risk e.g. DoS attack
+    # - (set True if throttling is set)
+    "UPDATE_LAST_LOGIN": False, 
+    "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
+    "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
+    "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
     "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
     # disable last login after token refresh as users abusing the views could slow the server, 
@@ -130,7 +161,13 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
     "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
 }
+
+# raise an error if there is no JWT_SECRET_KEY
+# use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
+if SIMPLE_JWT["SIGNING_KEY"] is None:
+    raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
 # raise an error if there is no JWT_SECRET_KEY
 # use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
@@ -159,6 +196,15 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -171,15 +217,16 @@ DATABASES = {
 }
 
 
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='3306'),
+    }
+}
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     } 
-    
-# } 
-    
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -222,6 +269,20 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+#Redis settings
+REDIS_HOST = 'redis-15235.c338.eu-west-2-1.ec2.redns.redis-cloud.com'
+REDIS_PORT = 15235
+REDIS_DB = 0
+REDIS_USERNAME = "default"
+REDIS_PASSWORD = config('REDIS_PASSWORD')
+# "53hoa2V9floi0trMLUZyYObRT9AbI4cw" 
+#Redis settings
+REDIS_HOST = 'redis-15235.c338.eu-west-2-1.ec2.redns.redis-cloud.com'
+REDIS_PORT = 15235
+REDIS_DB = 0
+REDIS_USERNAME = "default"
+REDIS_PASSWORD = config('REDIS_PASSWORD')
+# "53hoa2V9floi0trMLUZyYObRT9AbI4cw" 
 
 
 CACHES = {
@@ -236,20 +297,30 @@ CACHES = {
 
 
 
+
+
 EMAIL_VERIFICATION_TIMEOUT = 300  # 5 minutes
 VERIFICATION_CODE_LENGTH = 6
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', default=465, cast=int) 
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=True, cast=bool) 
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=False, cast=bool)  
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD') 
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
+EMAIL_PORT = 465  # Port for SSL
+EMAIL_USE_SSL = True  # Use SSL for secure connection
+EMAIL_USE_TLS = False  # TLS should be False if SSL is True
+EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
+EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
+DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
+EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
+EMAIL_PORT = 465  # Port for SSL
+EMAIL_USE_SSL = True  # Use SSL for secure connection
+EMAIL_USE_TLS = False  # TLS should be False if SSL is True
+EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
+EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
+DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
 
-FRONTEND_URL = 'http://localhost :3000'
+FRONTEND_URL = 'http://localhost : 3000'
+FRONTEND_URL = 'http://localhost : 3000'
 
 
 LOGGING = {
@@ -278,3 +349,4 @@ LOGGING = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
