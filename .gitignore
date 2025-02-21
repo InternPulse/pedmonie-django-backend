@@ -6,6 +6,10 @@ __pycache__
 db.sqlite3
 media
 
+# Ignore Django migrations
+**/migrations/*
+!**/migrations/__init__.py
+
 # Backup files # 
 *.bak 
 
@@ -141,4 +145,3 @@ GitHub.sublime-settings
 *.csr
 *.key
 *.srl
-

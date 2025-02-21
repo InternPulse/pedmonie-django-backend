@@ -18,10 +18,6 @@ from decouple import config
 
 
 
-from decouple import config
-
-
-
 
 
 
@@ -33,20 +29,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 # Initialize environment variables
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-50=&_1wf9$2qdo)kb%_^lc@c-98ukvq3^$1s&ndg5zg5%m8*cz'
 SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
+
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
@@ -70,10 +59,6 @@ INSTALLED_APPS = [
     'wallets',
     'orders',
     'corsheaders',
-    'payments',
-    'support',
-    'transactions',
-
     'payments',
     'support',
     'transactions',
@@ -115,34 +100,8 @@ REST_FRAMEWORK = {
 }
 
 
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-#     'ROTATE_REFRESH_TOKENS': True,
-#     'BLACKLIST_AFTER_ROTATION': True,
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-#     'USER_ID_FIELD': 'merchant_id',
-# }
-
-
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-#     'ROTATE_REFRESH_TOKENS': True,
-#     'BLACKLIST_AFTER_ROTATION': True,
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-#     'USER_ID_FIELD': 'merchant_id',
-# }
-
 SIMPLE_JWT = {
-    "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
-    "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
-    # disable last login after token refresh as users abusing the views could slow the server, 
-    # - creating a security risk e.g. DoS attack
-    # - (set True if throttling is set)
+
     "UPDATE_LAST_LOGIN": False, 
     "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
     "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
@@ -169,10 +128,6 @@ SIMPLE_JWT = {
 if SIMPLE_JWT["SIGNING_KEY"] is None:
     raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
-# raise an error if there is no JWT_SECRET_KEY
-# use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
-if SIMPLE_JWT["SIGNING_KEY"] is None:
-    raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
 TEMPLATES = [
     {
@@ -207,16 +162,6 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
-        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
-        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-    }
-}
-
-
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),  # Change to your DB name in .env file
         'USER': config('DB_USER'),         # Change to your MySQL username in .env file
