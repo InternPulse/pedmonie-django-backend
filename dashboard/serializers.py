@@ -8,7 +8,7 @@ class MerchantSerializer(serializers.ModelSerializer):
         model = Merchant
         fields = [
             "merchant_id", "first_name", "last_name", "business_name", "email",
-            "phone", "total_balance", "is_email_verified", "is_kyc_verified",
+            "phone", "is_email_verified", "is_kyc_verified",
             "createdAt"
         ]
         read_only_fields = ["merchant_id", "createdAt"]
@@ -19,4 +19,4 @@ class AuditLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AuditLog
-        fields = ["log_id", "admin_email", "action", "created_at"]
+        fields = ["log_id", "admin_email", "action", "createdAt"]

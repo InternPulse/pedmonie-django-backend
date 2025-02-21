@@ -15,35 +15,55 @@ class TransactionViewSet(viewsets.ViewSet):
     def list(self, request):
         transactions = Transaction.objects.all()
         serializer = TransactionSerializer(transactions, many=True)
-        return Response(serializer.data)
+        return Response({
+            'status': 'True',
+            'data':serializer.data
+        })
 
 
     def retrieve(self, request, pk=None):
         try:
             transaction = Transaction.objects.get(transaction_id=pk)
             serializer = TransactionSerializer(transaction)
-            return Response(serializer.data)
+            return Response({
+                'status': 'True',
+                'data':serializer.data
+                }, status=status.HTTP_200_OK)
         except Transaction.DoesNotExist:
-            return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'status': 'False',
+                'error': 'Transaction not found'
+                }, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'], url_path='wallets/(?P<wallet_id>[^/.]+)/transactions')
     def transactions_by_wallet(self, request, wallet_id=None):
         transactions = Transaction.objects.filter(order_id=wallet_id)
         serializer = TransactionSerializer(transactions, many=True)
-        return Response(serializer.data)
+        return Response({
+            'status':'True',
+            'data':serializer.data
+            }, status=status.HTTP_200_OK)
 
 
     @action(detail=True, methods=['post'], url_path='refund')
-
     def refund_transaction(self, request, pk=None):
         try:
             transaction = Transaction.objects.get(transaction_id=pk)
             if transaction.status != "successful":
-                return Response({"error": "Only successful transactions can be refunded"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'status': 'False',
+                    'message': 'Only successful transactions can be refunded'
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
             
             transaction.status = "pending"  # Simulating refund processing
             transaction.save()
-            return Response({"message": "Transaction refund initiated"}, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'True',
+                'message': 'Transaction refund initiated'
+                }, status=status.HTTP_200_OK)
         except Transaction.DoesNotExist:
-            return Response({"error": "Transaction not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'status': 'False',
+                'message': 'Transaction not found'
+                }, status=status.HTTP_404_NOT_FOUND)

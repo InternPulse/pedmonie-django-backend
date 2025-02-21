@@ -51,9 +51,10 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         if not request.user.is_staff:
-            return Response(
-                {"detail": "Only admins can update support tickets."},
-                status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'status': 'False',
+                'data': 'Only admins can update support tickets.'
+                }, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
 
@@ -69,12 +70,17 @@ class SupportMessageCreateView(generics.CreateAPIView):
         ticket = get_object_or_404(SupportTicket, ticket_id=ticket_id)
         user = request.user
         if not user.is_staff and ticket.merchant != user:
-            return Response(
-                {"detail": "You can only send messages to your own support tickets."},
-                status=status.HTTP_403_FORBIDDEN,
+            return Response({
+                'status': 'False',
+                'message': 'You can only send messages to your own support tickets.'
+                }, status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(ticket=ticket, sender=user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'True',
+            'message': 'Ticket successfully created.',
+            'data': serializer.data
+            }, status=status.HTTP_201_CREATED)

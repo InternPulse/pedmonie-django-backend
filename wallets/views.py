@@ -22,7 +22,10 @@ class WalletListView(APIView):
         """Get all wallets (admin only)."""
         wallets = Wallet.objects.all()
         serializer = WalletSerializer(wallets, many=True)
-        return Response(serializer.data)
+        return Response({
+            'status': 'True',
+            'data': serializer.data
+            }, status=status.HTTP_200_OK)
 
 class WalletDetailView(APIView):
 
@@ -33,7 +36,10 @@ class WalletDetailView(APIView):
         """Get a specific wallet by ID (admin only)."""
         wallet = get_object_or_404(Wallet, wallet_id=wallet_id)
         serializer = WalletSerializer(wallet)
-        return Response(serializer.data)
+        return Response({
+            'status': 'True',
+            'data': serializer.data
+            }, status=status.HTTP_200_OK)
 
     def patch(self, request, wallet_id):
         """Update a specific wallet (admin only)."""
@@ -41,14 +47,23 @@ class WalletDetailView(APIView):
         serializer = WalletSerializer(wallet, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+            'status': 'True',
+            'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'False',
+            'data': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, wallet_id):
         """Delete a specific wallet (admin only)."""
         wallet = get_object_or_404(Wallet, wallet_id=wallet_id)
         wallet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            'status': 'True',
+            'message': 'Wallet successfully deleted.'
+            },status=status.HTTP_204_NO_CONTENT)
 
 
 class RequestWithdrawalView(APIView):
@@ -62,7 +77,10 @@ class RequestWithdrawalView(APIView):
 
         # Ensure the requesting user is the owner of the wallet
         if request.user != merchant:
-            return Response({"error": "You are not authorized to withdraw from this wallet."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'status': 'False',
+                'message': 'You are not authorized to withdraw from this wallet.'
+                }, status=status.HTTP_403_FORBIDDEN)
 
         serializer = WithdrawalSerializer(data=request.data, context={'merchant': merchant})
         if serializer.is_valid():
@@ -86,15 +104,20 @@ class RequestWithdrawalView(APIView):
             wallet.save()
 
             return Response({
+                'status': 'True',
                 "message": "Withdrawal request submitted successfully.",
-                "sn": withdrawal.sn,  # Include SN
-                "withdrawal_id": withdrawal.withdrawal_id,
-                "initial_balance": initial_balance,
-                "final_balance": final_balance,
-                "status": withdrawal.status
+                'data':{
+                    'sn': withdrawal.sn,  # Include SN
+                'withdrawal_id': withdrawal.withdrawal_id,
+                'initial_balance': initial_balance,
+                'final_balance': final_balance,
+                'status': withdrawal.status
+                }   
             }, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'data': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MerchantWithdrawalsView(APIView):
@@ -109,7 +132,10 @@ class MerchantWithdrawalsView(APIView):
 
         # Ensure only the merchant can view their withdrawals
         if request.user != merchant:
-            return Response({"error": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'status': 'False',
+                'message': 'Unauthorized access.'
+                }, status=status.HTTP_403_FORBIDDEN)
 
         withdrawals = Withdrawal.objects.filter(merchant=merchant)
         serializer = WithdrawalSerializer(withdrawals, many=True)
@@ -127,9 +153,15 @@ class WithdrawalDetailView(APIView):
 
         # Ensure only the merchant can view this withdrawal
         if request.user != merchant:
-            return Response({"error": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({
+                'status': 'False',
+                'message': 'Unauthorized access.'
+                }, status=status.HTTP_403_FORBIDDEN)
 
         withdrawal = get_object_or_404(Withdrawal, withdrawal_id=withdrawal_id, merchant=merchant)
         serializer = WithdrawalSerializer(withdrawal)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'True',
+            'data':serializer.data
+            }, status=status.HTTP_200_OK)
 

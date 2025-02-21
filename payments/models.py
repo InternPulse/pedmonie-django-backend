@@ -17,9 +17,9 @@ class PaymentGateway(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = PaymentGateway.objects.order_by('-gateway_id').first()
-            if last_sn and last_sn.sn.isdigit():
-                self.sn = str(int(last_sn.sn) + 1)
+            last_PG = PaymentGateway.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
+            if last_PG and last_PG.sn.isdigit():
+                self.sn = str(int(last_PG.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
@@ -27,8 +27,7 @@ class PaymentGateway(models.Model):
     class Meta:
         db_table = "paymentgateways"  # Matches Sequelize table name
 
-    def __str__(self):
-        return self.sn
+    
 
 
 

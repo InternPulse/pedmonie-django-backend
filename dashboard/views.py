@@ -34,9 +34,17 @@ class MerchantDetailView(APIView):
         try:
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             serializer = AdminSerializer(merchant)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'True',
+                'message': 'Successfully Retrieved.',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+               
         except Merchant.DoesNotExist:
-            return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                "status": 'False',
+                'message': 'Merchant not found'
+                }, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, merchant_id):
         """Update a merchant's details."""
@@ -45,19 +53,36 @@ class MerchantDetailView(APIView):
             serializer = AdminSerializer(merchant, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'status': 'True',
+                    'message': 'Merchant Details Successfully Updated',
+                    'data': serializer.data,
+                }, status.HTTP_200_OK)
+            return Response({
+                'status': 'False',
+                'message': 'Merchant Update Failed.',
+                'data': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
         except Merchant.DoesNotExist:
-            return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'status': 'False',
+                'message': 'Merchant not found'
+                }, status=status.HTTP_404_NOT_FOUND)
 
     def delete(self, request, merchant_id):
         """Delete a merchant."""
         try:
             merchant = Merchant.objects.get(merchant_id=merchant_id)
             merchant.delete()
-            return Response({"message": "Merchant deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({
+                'status': 'False',
+                'message': 'Merchant deleted successfully'
+                }, status=status.HTTP_204_NO_CONTENT)
         except Merchant.DoesNotExist:
-            return Response({"error": "Merchant not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'status': 'False',
+                "message": "Merchant not found"
+                }, status=status.HTTP_404_NOT_FOUND)
 
 #  Admin gets all audit logs
 class DashboardAuditLogsView(APIView):
@@ -70,4 +95,8 @@ class DashboardAuditLogsView(APIView):
         """Retrieve admin logs."""
         logs = AuditLog.objects.all()
         serializer = AuditLogSerializer(logs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'status': 'True',
+            'message': 'Admin logs retrieved successfully',
+            'data': serializer.data
+            },status=status.HTTP_200_OK)
