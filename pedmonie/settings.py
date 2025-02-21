@@ -74,10 +74,6 @@ INSTALLED_APPS = [
     'support',
     'transactions',
 
-    'payments',
-    'support',
-    'transactions',
-
 ]
 
 # custom user model setting
@@ -115,37 +111,9 @@ REST_FRAMEWORK = {
 }
 
 
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-#     'ROTATE_REFRESH_TOKENS': True,
-#     'BLACKLIST_AFTER_ROTATION': True,
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-#     'USER_ID_FIELD': 'merchant_id',
-# }
 
-
-# SIMPLE_JWT = {
-#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-#     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-#     'ROTATE_REFRESH_TOKENS': True,
-#     'BLACKLIST_AFTER_ROTATION': True,
-#     'AUTH_HEADER_TYPES': ('Bearer',),
-#     'USER_ID_FIELD': 'merchant_id',
-# }
 
 SIMPLE_JWT = {
-    "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
-    "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
-    # disable last login after token refresh as users abusing the views could slow the server, 
-    # - creating a security risk e.g. DoS attack
-    # - (set True if throttling is set)
-    "UPDATE_LAST_LOGIN": False, 
-    "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
-    "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
     "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -161,7 +129,6 @@ SIMPLE_JWT = {
     "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
     "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
 }
 
 # raise an error if there is no JWT_SECRET_KEY
@@ -169,10 +136,6 @@ SIMPLE_JWT = {
 if SIMPLE_JWT["SIGNING_KEY"] is None:
     raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
-# raise an error if there is no JWT_SECRET_KEY
-# use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
-if SIMPLE_JWT["SIGNING_KEY"] is None:
-    raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
 
 TEMPLATES = [
     {
@@ -216,15 +179,6 @@ DATABASES = {
     }
 }
 
-
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
-        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
-        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='3306'),
-    }
-}
 
 
 
@@ -275,14 +229,7 @@ REDIS_PORT = 15235
 REDIS_DB = 0
 REDIS_USERNAME = "default"
 REDIS_PASSWORD = config('REDIS_PASSWORD')
-# "53hoa2V9floi0trMLUZyYObRT9AbI4cw" 
-#Redis settings
-REDIS_HOST = 'redis-15235.c338.eu-west-2-1.ec2.redns.redis-cloud.com'
-REDIS_PORT = 15235
-REDIS_DB = 0
-REDIS_USERNAME = "default"
-REDIS_PASSWORD = config('REDIS_PASSWORD')
-# "53hoa2V9floi0trMLUZyYObRT9AbI4cw" 
+
 
 
 CACHES = {
@@ -304,20 +251,13 @@ VERIFICATION_CODE_LENGTH = 6
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
-EMAIL_PORT = 465  # Port for SSL
-EMAIL_USE_SSL = True  # Use SSL for secure connection
-EMAIL_USE_TLS = False  # TLS should be False if SSL is True
-EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
-EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
-DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
-EMAIL_HOST = "smtp.hostinger.com"  # Your SMTP host
-EMAIL_PORT = 465  # Port for SSL
-EMAIL_USE_SSL = True  # Use SSL for secure connection
-EMAIL_USE_TLS = False  # TLS should be False if SSL is True
-EMAIL_HOST_USER = "info@prudytelecom.com.ng"  # Your email
-EMAIL_HOST_PASSWORD = "Avnadmin25@"  # Your SMTP password
-DEFAULT_FROM_EMAIL = "smtp.hostinger.com"  # Default sender email
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_SSL= config('EMAIL_USE_SSL')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 FRONTEND_URL = 'http://localhost : 3000'
 FRONTEND_URL = 'http://localhost : 3000'

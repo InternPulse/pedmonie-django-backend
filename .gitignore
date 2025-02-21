@@ -142,3 +142,6 @@ GitHub.sublime-settings
 *.key
 *.srl
 
+# Ignore Django migrations
+**/migrations/*
+!**/migrations/__init__.py

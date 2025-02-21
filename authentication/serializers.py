@@ -35,7 +35,7 @@ class AdminSerializer(serializers.ModelSerializer):
         fields = '__all__'                          
         
         # fields that can be viewed but not modified via API        
-        read_only_fields = ['merchant_id', 'created_at', 'updated_at', 'total_balance']
+        read_only_fields = ['merchant_id', 'createdAt', 'updatedAt']
 
     # create a superuser
     def create(self, validated_data):
@@ -185,7 +185,7 @@ class MerchantRegistrationSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'bvn', 'email', 'phone', 'password', 'confirm_password']
 
         #Extra fields that exist in the model but aren't required in the request
-        extra_fields = ['created_at', 'updated_at', 'role', 'total_balance', 'email_verification_code', 'is_email_verified']
+        extra_fields = ['createdAt', 'updatedAt', 'role', 'email_verification_code', 'is_email_verified']
 
 
     def validate(self, data):
@@ -273,5 +273,5 @@ class MerchantProfileSerializer(serializers.ModelSerializer):
 
         #Fields included in profile response      
         fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'email', 'phone', 'is_email_verified',
-                  'role', 'total_balance','created_at', 'updated_at'
+                  'role', 'total_balance','createdAt', 'updatedAt'
         ]
