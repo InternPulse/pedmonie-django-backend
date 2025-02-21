@@ -17,12 +17,11 @@ PedMonie ensures seamless payment handling with secure authentication and robust
 
 ## Live Link
 
-[API Live Demo currently unavailable]()
+[API Live Demo](https://pedmonie-django-backend.onrender.com)
 
 ## Documentation Link
 
-Postman API Documentation for the JWT generation, creation of a Superuser, retrieving the data of a Superuser [here](https://documenter.getpostman.com/view/41687429/2sAYXFhxLC).
-Postman API Documentation for the User Dashboard Wallet & Transactions [here](https://documenter.getpostman.com/view/41687429/2sAYdZsYhv).
+Postman API Documentation [here](https://documenter.getpostman.com/view/41687429/2sAYdZttrw).
 
 ---
 
