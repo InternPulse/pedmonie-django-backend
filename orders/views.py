@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.pagination import PageNumberPagination
 from .models import Order
 from .serializers import OrderSerializer
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class OrderPagination(PageNumberPagination):
     page_size = 10  # Number of orders per page
@@ -13,7 +12,6 @@ class OrderPagination(PageNumberPagination):
     max_page_size = 100
 
 class OrderViewSet(viewsets.ModelViewSet):
-    authentication_classes = [JWTAuthentication]
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAdminUser]

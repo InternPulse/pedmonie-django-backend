@@ -1,4 +1,3 @@
-# serializers.py
 from rest_framework import serializers
 from .models import Wallet, Withdrawal
 
@@ -13,6 +12,7 @@ class WalletSerializer(serializers.ModelSerializer):
         if request and not request.user.is_superuser:
             raise serializers.ValidationError("Only superusers can modify wallet details.")
         return data
+
 
 class WithdrawalSerializer(serializers.ModelSerializer):
     class Meta:

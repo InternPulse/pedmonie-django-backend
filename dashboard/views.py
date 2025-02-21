@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.permissions import IsAuthenticated
 from authentication.models import Merchant
 from authentication.serializers import AdminSerializer
@@ -8,11 +8,13 @@ from dashboard.models import AuditLog
 from dashboard.serializers import AuditLogSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+
 # Admin gets all merchants
 class MerchantListView(APIView):
     """List all merchants (Admin only)."""
-    authentication_classes = JWTAuthentication
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         """Retrieve all merchants."""
@@ -25,6 +27,7 @@ class MerchantDetailView(APIView):
     """Retrieve, update, or delete a single merchant (Admin only)."""
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request, merchant_id):
         """Retrieve a merchant by ID."""
@@ -61,6 +64,7 @@ class DashboardAuditLogsView(APIView):
     """Retrieve all admin audit logs."""
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         """Retrieve admin logs."""

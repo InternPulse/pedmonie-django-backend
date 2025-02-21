@@ -10,11 +10,11 @@ class SupportTicket(models.Model):
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
     description = models.TextField()
-    createdAt = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'support_tickets'
-        ordering = ["-createdAt"]
+        ordering = ["created_at"]
 
     def _str_(self):
         return f"Ticket {self.ticket_id} - {self.status}"
@@ -36,20 +36,11 @@ class SupportMessage(models.Model):
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE)
     sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     message = models.TextField()
-    createdAt = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'support_messages'
-        ordering = ["-createdAt"]
+        ordering = ["created_at"]
 
     def _str_(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"
-    
-    def save(self, *args, **kwargs):
-        if not self.sn:  # Only assign if 'sn' is empty
-            last_message = SupportMessage.objects.order_by('-sn').first()
-            if last_message and last_message.sn.isdigit():
-                self.sn = str(int(last_message.sn) + 1)
-            else:
-                self.sn = "1"  # Start from 1 if no records exist
-        super().save(*args, **kwargs)

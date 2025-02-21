@@ -9,8 +9,6 @@ class AuditLog(models.Model):
     action = models.TextField()  # Example: "Deleted a merchant account"
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f"{self.admin.email} - {self.action}"
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
@@ -20,3 +18,7 @@ class AuditLog(models.Model):
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
+
+    
+    def __str__(self):
+        return f"{self.admin.email} - {self.action}"

@@ -4,9 +4,9 @@ from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Wallet, Withdrawal
 from authentication.models import Merchant
-from .serializers import WalletSerializer
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import WalletSerializer, WithdrawalSerializer
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 
 # Custom permission class to allow only admins to access wallet endpoints
 class IsAdminUser(permissions.BasePermission):
@@ -14,6 +14,7 @@ class IsAdminUser(permissions.BasePermission):
         return request.user and request.user.is_staff
 
 class WalletListView(APIView):
+
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
@@ -24,6 +25,7 @@ class WalletListView(APIView):
         return Response(serializer.data)
 
 class WalletDetailView(APIView):
+
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
@@ -47,9 +49,12 @@ class WalletDetailView(APIView):
         wallet = get_object_or_404(Wallet, wallet_id=wallet_id)
         wallet.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
+
 class RequestWithdrawalView(APIView):
     """Allow merchants to request a withdrawal"""
+
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, merchant_id):
@@ -94,6 +99,9 @@ class RequestWithdrawalView(APIView):
 
 class MerchantWithdrawalsView(APIView):
     """Get all withdrawals for a specific merchant"""
+
+    authentication_classes = [JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, merchant_id):
@@ -110,6 +118,8 @@ class MerchantWithdrawalsView(APIView):
 
 class WithdrawalDetailView(APIView):
     """Get details of a specific withdrawal"""
+    
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, merchant_id, withdrawal_id):
@@ -122,3 +132,4 @@ class WithdrawalDetailView(APIView):
         withdrawal = get_object_or_404(Withdrawal, withdrawal_id=withdrawal_id, merchant=merchant)
         serializer = WithdrawalSerializer(withdrawal)
         return Response(serializer.data, status=status.HTTP_200_OK)
+

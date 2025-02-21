@@ -12,3 +12,4 @@ urlpatterns = [
     path("merchants/<uuid:merchant_id>/withdrawals/<uuid:withdrawal_id>/", WithdrawalDetailView.as_view(), name="get-withdrawal"),
 
 ]
+

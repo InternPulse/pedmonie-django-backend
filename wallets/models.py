@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from authentication.models import Merchant  # Adjust the import if necessary
+from authentication.models import Merchant
 
 class Wallet(models.Model):
     wallet_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -17,16 +17,22 @@ class Wallet(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_wallet = Wallet.objects.order_by('-sn').first()
-            if last_wallet and last_wallet.sn.isdigit():
-                self.sn = str(int(last_wallet.sn) + 1)
+            last_sn = Wallet.objects.order_by('-wallet_id').first()
+            if last_sn and last_sn.sn.isdigit():
+                self.sn = str(int(last_sn.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
 
+
     class Meta:
-        ordering = ["-createdAt"]
-    
+        db_table = 'wallets'
+        ordering = ["createdAt"]
+
+    def __str__(self):
+        return f"Wallet {self.wallet_id} - {self.merchant.email}"
+        
+
 
 class Withdrawal(models.Model):
     withdrawal_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -48,13 +54,16 @@ class Withdrawal(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_withdrawal = Withdrawal.objects.order_by('-sn').first()
-            if last_withdrawal and last_withdrawal.sn.isdigit():
-                self.sn = str(int(last_withdrawal.sn) + 1)
+            last_sn = Withdrawal.objects.order_by('-withdrawal_id').first()
+            if last_sn and last_sn.sn.isdigit():
+                self.sn = str(int(last_sn.sn) + 1)
             else:
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.sn
     
     class Meta:
         db_table = 'withdrawals'
-        ordering = ["-createdAt"]
+        ordering = ["createdAt"]
