@@ -18,4 +18,3 @@ class CreateSupportTicketSerializer(serializers.ModelSerializer):
         model = SupportTicket
         fields = "__all__"
         read_only_fields = ["ticket_id", "created_at", "status", "merchant"]
-

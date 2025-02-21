@@ -1,5 +1,6 @@
 from django.db import models
-import uuid  # Import uuid for UUID fields
+from django.db import models
+import uuid  
 
 
 class Transaction(models.Model):

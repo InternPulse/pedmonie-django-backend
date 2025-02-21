@@ -24,12 +24,13 @@ class Wallet(models.Model):
                 self.sn = "1"  # Start from 1 if no records exist
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return self.sn
 
     class Meta:
         db_table = 'wallets'
-        ordering = ["-createdAt"]
+        ordering = ["createdAt"]
+
+    def __str__(self):
+        return f"Wallet {self.wallet_id} - {self.merchant.email}"
         
 
 
