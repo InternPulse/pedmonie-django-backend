@@ -120,14 +120,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # add custom claims to token payload
         # avoid sensitive data + mutable data, include claims for user ID, authorisation checks, frequently accessed user info
         # public custom claims
-        # token['merchant_id'] = str(user.merchant_id)
+        token['merchant_id'] = str(user.merchant_id)
         token['email'] = user.email
-        # token['role'] = user.role
+        token['role'] = user.role
         # private custom claims
-        # token['is_staff'] = user.is_staff
-        # token['is_admin'] = user.is_superuser 
+        token['is_staff'] = user.is_staff
+        token['is_admin'] = user.is_superuser 
         
-        del token['user_id']       
+        # del token['user_id']       
 
         # return token    
         return token    
