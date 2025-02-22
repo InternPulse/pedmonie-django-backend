@@ -36,7 +36,7 @@ class MerchantPaymentGateway(models.Model):
     Model for storing a merchant's enabled payment gateways.
     """
     sn = models.AutoField(primary_key=True)  # Matches Sequelize's `autoIncrement: true`
-    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='merchant_payment_gateway')
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='merchant_payment_gateway')
     payment_gateways = models.JSONField(blank=False)  # Store JSON data for active payment gateways
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
