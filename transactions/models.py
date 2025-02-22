@@ -8,7 +8,7 @@ class Transaction(models.Model):
     transaction_id = models.UUIDField(primary_key=True)
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     order_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='transaction')
-    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='transaction')
+    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='transactions')
     gateway_name = models.CharField(max_length=50)
     gateway_transaction_identifier = models.CharField(max_length=50)
     payment_channel = models.CharField(max_length=50)
