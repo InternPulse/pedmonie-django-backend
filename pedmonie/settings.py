@@ -100,11 +100,10 @@ REST_FRAMEWORK = {
 }
 
 
-
 SIMPLE_JWT = {
     "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2880),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": config('ACCESS_TOKEN_LIFETIME'),
+    "REFRESH_TOKEN_LIFETIME": config('REFRESH_TOKEN_LIFETIME'),
     "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
     "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
     # disable last login after token refresh as users abusing the views could slow the server, 
