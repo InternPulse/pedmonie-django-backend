@@ -4,6 +4,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .utils import generate_verification_token, store_verification_token, send_verification_email, verify_token
+import uuid
+from wallets.models import Wallet
 
 # API view allows for message customisation without overriding methods
 # using it since there are 2 endpoints: create, retrieve
@@ -192,14 +194,32 @@ class MerchantViewSet(viewsets.ModelViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            merchant = serializer.save()  
-
+            merchant = serializer.save() 
 
             #Generate and store an email verification token
             verification_token = generate_verification_token()
             if store_verification_token(merchant.email, verification_token):
                 if send_verification_email(merchant.email, verification_token):
                     refresh = RefreshToken.for_user(merchant)
+                           #Generate a unique serial number for the wallet
+                #     def generate_serial_number():
+                #         return f'WAL-{str(uuid.uuid4())[:8].upper()}'
+                        
+                
+                # #Keep generating until we get a unique serial number
+                #     while True:
+                #         sn = generate_serial_number()
+                #         print(sn)
+                #         if not Wallet.objects.filter(sn=sn).exists():
+                #             break
+                #     Wallet.objects.create(
+                #         merchant=merchant,
+                #         sn=sn,
+                #         amount=0.00,
+                #         currency="NGN"
+                #     )
+
+                        
                     
                     return Response({
                         'status': 'True',
@@ -254,6 +274,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 merchant.is_email_verified = True
                 merchant.save()
                 
+             
 
                 return Response({
                     'status': 'True',

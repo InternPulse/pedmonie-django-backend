@@ -7,7 +7,7 @@ from authentication.models import Merchant
 class SupportTicket(models.Model):
     ticket_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'})
+    merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'}, related_name='support_ticket')
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
     description = models.TextField()
     createdAt = models.DateTimeField(auto_now_add=True)

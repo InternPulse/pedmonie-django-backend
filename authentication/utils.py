@@ -17,12 +17,12 @@ from decouple import config
 logger = logging.getLogger(__name__)
 
 redis_client = redis.Redis(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT,
-    db=settings.REDIS_DB,
+    host=config('REDIS_HOST'),
+    port=config('REDIS_PORT'),
+    db=config('REDIS_DB'),
     decode_responses=True,
-    username="default",
-    password="53hoa2V9floi0trMLUZyYObRT9AbI4cw",    
+    username=config('REDIS_USERNAME'),
+    password=config('REDIS_PASSWORD'),    
 )
 
 
@@ -47,7 +47,7 @@ def store_verification_token(email, token):
     try: 
         redis_client.setex(
             f'email_verification:{email}',
-            settings.EMAIL_VERIFICATION_TIMEOUT,
+            config('EMAIL_VERIFICATION_TIMEOUT'),
             token
         )
         logger.info(f'verification token stored for {email}')
@@ -94,7 +94,7 @@ def send_verification_email(email, token):
     message = f"""Hello,
     Please verify your email by clicking on the link below:
     {verification_url}
-    This link will expire in {settings.EMAIL_VERIFICATION_TIMEOUT} minutes.
+    This link will expire in {config('EMAIL_VERIFICATION_TIMEOUT')} minutes.
     Thank you!
     """
     sender_email = config('FROM_EMAIL')
