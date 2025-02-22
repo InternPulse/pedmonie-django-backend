@@ -6,7 +6,7 @@ class Order(models.Model):
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gateway_name = models.CharField(max_length=50)
-    merchant_id = models.ForeignKey(Merchant, on_delete=models.PROTECT, related_name='order')
+    merchant_id = models.ForeignKey(Merchant, on_delete=models.PROTECT, related_name='orders')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3)
     order_status = models.CharField(max_length=20, choices=[
