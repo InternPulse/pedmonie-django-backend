@@ -18,6 +18,15 @@ class WalletListView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated, IsAdminUser]
 
+
+    def post(self, request):
+        """Create a new wallet (admin only)."""
+        serializer = WalletSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def get(self, request,):
         """Get all wallets (admin only)."""
         wallets = Wallet.objects.all()
