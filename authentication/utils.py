@@ -32,26 +32,6 @@ def generate_verification_token():
     """
     return str(uuid.uuid4())
 
-# def store_verification_token(email, token):
-#     """
-#     Store the verification token in Redis.
-
-#     :param email: Email address for the verification token
-#     :type email: str
-#     :param token: Verification token
-#     :type token: str
-#     """
-#     try: 
-#         redis_client.setex(
-#             f'email_verification:{email}',
-#             int(config('EMAIL_VERIFICATION_TIMEOUT')),
-#             token
-#         )
-#         logger.info(f'verification token stored for {email}')
-#         return True
-#     except redis.RedisError as e:
-#         logger.error(f'Redis error storing verification token: {str(e)}')
-#         return False
     
 def store_verification_token(email, token):
     try:
@@ -119,29 +99,6 @@ def clear_merchant_data(email):
 
 
 
-# def verify_token(email, token):
-#     """
-#     Verify the token againist the stored token on Redis.
-#     :param email: Email address for the verification token
-#     :type email: str
-#     :param token: verification token
-#     :type token: str
-#     :return: True if the token matches, False otherwise
-#     :rtype: bool
-#     """
-#     try:
-#         stored_token = redis_client.get(f'email_verification:{email}')
-#         if not stored_token:
-#             logger.warning(f'No verifcation token found for {email}')
-#             return False
-#         #if the token matches, delete it from Redis
-#         if stored_token == token:
-#             redis_client.delete(f'email_verification:{email}')
-#             return True
-#         return False
-#     except redis.RedisError as e:
-#         logger.error(f'Redis error verifying token: {str(e)}')
-#         return False
 def verify_token(email, token):
     try:
         sanitized_email = email.replace('@', '_').replace('.', '_')

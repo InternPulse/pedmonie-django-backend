@@ -109,7 +109,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # basic merchant info
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     
 
     # def __str__(self):

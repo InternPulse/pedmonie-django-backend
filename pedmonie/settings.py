@@ -147,18 +147,28 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 
 
 
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': config('DB_NAME'),  # Change to your DB name in .env file
-        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
-        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3'),
+        'TIMEOUT': int(os.getenv('DB_TIMEOUT', '20')),
+        'OPTIONS': {
+            'timeout': int(os.getenv('DB_TIMEOUT', '20')),
+            'check_same_thread': os.getenv('DB_CHECK_SAME_THREAD', 'False') == 'True',
+        },
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': config('DB_NAME'),  # Change to your DB name in .env file
+#         'USER': config('DB_USER'),         # Change to your MySQL username in .env file
+#         'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+#         'HOST': config('DB_HOST'),
+#         'PORT': config('DB_PORT'),
+#     }
+# }
 
 
 

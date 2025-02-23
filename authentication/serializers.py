@@ -252,61 +252,7 @@ class MerchantRegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Failed to process registration')
 
     
-    
-    # def create(self, validated_data):
 
-    #     validated_data.pop('confirm_password')
-
-    #     password = validated_data.pop('password')
-
-    #     password_hash = make_password(password)
-    #     validated_data['password'] = password_hash
-
-    #     token = generate_verification_token()
-
-    #     merchant_data = {k: str(v) for k, v in validated_data.items()}
-       
-
-    #     if store_merchant_data(merchant_data['email'], merchant_data, token):
-    #         if store_verification_token(merchant_data['email'], token):
-    #             if send_verification_email(merchant_data['email'], token):
-    #                 return True
-    #             else:
-    #                 clear_merchant_data(merchant_data['email'])
-    #                 raise serializers.ValidationError('Failed to send verification email')
-    #     else:
-    #         raise serializers.ValidationError('Failed to process registration')
-
-    # def create(self, validated_data):
-    #     """
-    #     Custom method to create a new Merchant instance.
-    #     1. Removes the confim_password firld as it's not needed in the database.
-    #     2. Hashes and stores the password securely.
-    #     3. Creates a new Merchant instance using the 'create_user' method.
-    #     4. Generates and stores an email verification token.
-    #     5. Sends an email verificatiom message.
-    #     """
-
-    #     #Remove confirm_password since it's only needed for validation
-    #     validated_data.pop('confirm_password')
-
-    #     #Extract and remove password from  the validated data to handle it separately
-    #     password = validated_data.pop('password')
-
-    #     #Create a new Merchant instance with the provided data and hashed password
-    #     merchant = Merchant.objects.create_user(password=password, **validated_data)
-
-    
-    #     #Generate, store and send token
-    #     token = generate_verification_token()
-
-    #     #Store the token  associated with the merchant's email 
-    #     store_verification_token(merchant.email, token)
-
-    #     #Send the verification email with the generated token
-    #     send_verification_email(merchant.email, token)
-
-    #     return merchant         #Return the created merchant instance 
 
 
 #Serializer for Email Verification

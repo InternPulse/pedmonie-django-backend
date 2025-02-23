@@ -7,7 +7,7 @@ from orders.models import Order
 
 class Transaction(models.Model):
     transaction_id = models.UUIDField(primary_key=True)
-    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_transactions')
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='transactions')
     gateway_name = models.CharField(max_length=50)
