@@ -11,7 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    # permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminUser]
     pagination_class = PageNumberPagination  # Adding pagination
     
     
