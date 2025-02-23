@@ -3,7 +3,7 @@ from authentication.models import Merchant
 import uuid
 
 class Order(models.Model):
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gateway_name = models.CharField(max_length=50)
     merchant = models.ForeignKey(Merchant, on_delete=models.PROTECT, related_name='orders')

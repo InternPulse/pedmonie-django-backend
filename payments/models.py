@@ -6,7 +6,7 @@ class PaymentGateway(models.Model):
     """
     Model for storing available payment gateways.
     """
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     gateway_id = models.UUIDField(primary_key=True, default=uuid.uuid4, unique=True, editable=False)
     gateway_name = models.CharField(max_length=100, unique=True)
     gateway_logo = models.ImageField(upload_to="gateway_logo/", null=True, blank=True)

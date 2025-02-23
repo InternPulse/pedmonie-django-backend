@@ -4,7 +4,7 @@ from authentication.models import Merchant
 
 class AuditLog(models.Model):
     log_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     admin = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'superadmin'})  # Reference Merchant model
     action = models.TextField()  # Example: "Deleted a merchant account"
     createdAt = models.DateTimeField(auto_now_add=True)

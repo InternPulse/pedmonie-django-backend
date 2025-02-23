@@ -6,7 +6,7 @@ from authentication.models import Merchant
 # Create your models here.
 class SupportTicket(models.Model):
     ticket_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     merchant_id = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'}, related_name='support_ticket')
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
     description = models.TextField()
@@ -32,7 +32,7 @@ class SupportTicket(models.Model):
 
 class SupportMessage(models.Model):
     message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE)
     sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     message = models.TextField()
