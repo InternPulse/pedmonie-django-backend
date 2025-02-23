@@ -315,6 +315,50 @@ class MerchantViewSet(viewsets.ModelViewSet):
             'message':'Invalid or expired verification token',
         }, status=status.HTTP_400_BAD_REQUEST)
     
+
+    @action(detail=False, methods=['POST'])
+    def signin(self, request):
+        """
+        Authenticate  a merchant and issue JWT tokens if credentials are valid.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email'] 
+            password = serializer.validated_data['password']
+
+            merchant = authenticate(email=email, password=password)
+
+            if merchant:
+                if not merchant.is_email_verified:
+                    #generate a  new verification token and send email again
+                    verification_token = generate_verification_token()
+                    if store_verification_token(merchant.email, verification_token):
+                        send_verification_email(merchant.email, verification_token)
+                    return Response({
+                        'status': 'error',
+                        'message': 'Email not verified. A new verification link has been sent to your email'
+                    }, status=status.HTTP_403_FORBIDDEN)
+                refresh = RefreshToken.for_user(merchant)
+                return Response({
+                    'status': 'True',
+                    'message': 'Login successful',
+                    'data': {
+                        'access_token': str(refresh.access_token),
+                        'refresh_token': str(refresh),
+                        'merchant_id': merchant.merchant_id,
+                        'email': merchant.email,
+                        'business_name': merchant.business_name,
+                        'is_email_verified': merchant.is_email_verified
+                    }
+                }, status=status.HTTP_200_OK)
+            
+        return Response({
+            'status': 'False',
+            'message': 'Invalid credentials'
+        }, status=status.HTTP_401_UNAUTHORIZED)
+    
+
+    
     def retrieve(self, request, *args, **kwargs):
         """
         Retrieve merchant's  profile details 
