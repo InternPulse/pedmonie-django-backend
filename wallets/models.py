@@ -6,7 +6,7 @@ from authentication.models import Merchant
 class Wallet(models.Model):
     wallet_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='wallet')
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='wallets')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     currency = models.CharField(max_length=3, default="NGN")
     createdAt = models.DateTimeField(default=timezone.now)
@@ -17,7 +17,7 @@ class Wallet(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_wallet = Wallet.objects.order_by('sn').first()
+            last_wallet = Wallet.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
             if last_wallet and last_wallet.sn.isdigit():
                 self.sn = str(int(last_wallet.sn) + 1)
             else:
