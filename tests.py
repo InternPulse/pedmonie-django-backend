@@ -7,6 +7,78 @@ from unittest.mock import patch
 from authentication.models import Merchant
 from wallets.models import Wallet
 from authentication.utils import verify_token, get_merchant_data, clear_merchant_data
+import unittest
+from unittest.mock import patch, MagicMock
+from authentication.utils import (
+    generate_verification_token,
+    store_verification_token,
+    store_merchant_data,
+    get_merchant_data,
+    clear_merchant_data,
+    verify_token,
+    send_verification_email
+)
+
+class TestVerificationFunctions(unittest.TestCase):
+    
+    @patch('authentication.utils.redis_client')
+    def test_generate_verification_token(self, mock_redis):
+        token = generate_verification_token()
+        self.assertIsInstance(token, str)
+        self.assertEqual(len(token), 36)  # UUID4 length
+    
+    @patch('authentication.utils.redis_client')
+    @patch('authentication.utils.config')
+    def test_store_verification_token(self, mock_config, mock_redis):
+        mock_config.return_value = '300'
+        mock_redis.setex.return_value = True
+        result = store_verification_token('test@example.com', 'token123')
+        self.assertTrue(result)
+    
+    @patch('authentication.utils.redis_client')
+    @patch('authentication.utils.config')
+    def test_store_merchant_data(self, mock_config, mock_redis):
+        mock_config.return_value = '300'
+        mock_redis.hset.return_value = True
+        mock_redis.expire.return_value = True
+        result = store_merchant_data('test@example.com', {'name': 'Merchant'})
+        self.assertTrue(result)
+    
+    @patch('authentication.utils.redis_client')
+    def test_get_merchant_data(self, mock_redis):
+        mock_redis.hgetall.return_value = {'name': 'Merchant'}
+        result = get_merchant_data('test@example.com')
+        self.assertEqual(result, {'name': 'Merchant'})
+    
+    @patch('authentication.utils.redis_client')
+    def test_clear_merchant_data(self, mock_redis):
+        mock_redis.delete.return_value = 1
+        result = clear_merchant_data('test@example.com')
+        self.assertTrue(result)
+    
+    @patch('authentication.utils.redis_client')
+    def test_verify_token(self, mock_redis):
+        mock_redis.get.return_value = 'token123'
+        mock_redis.delete.return_value = True
+        result = verify_token('test@example.com', 'token123')
+        self.assertTrue(result)
+    
+    @patch('authentication.utils.send_mail')
+    @patch('authentication.utils.config')
+    def test_send_verification_email(self, mock_config, mock_send_mail):
+        mock_config.side_effect = lambda key: {
+            'FRONTEND_URL': 'https://frontend.com/',
+            'EMAIL_VERIFICATION_TIMEOUT': '10',
+            'DEFAULT_FROM_EMAIL': 'noreply@example.com'
+        }[key]
+        mock_send_mail.return_value = 1
+        result = send_verification_email('test@example.com', 'token123')
+        self.assertTrue(result)
+
+if __name__ == '__main__':
+    unittest.main()
+
+
 
 class EmailVerificationTests(TestCase):
     def setUp(self):

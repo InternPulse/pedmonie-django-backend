@@ -128,8 +128,8 @@ def send_verification_email(email, token):
     :type token: str
     """
 
-    # base_url = settings.FRONTEND_URL
-    verification_url = urljoin(config('FRONTEND_URL'), f'/verify-email?email={email}&token={token}')
+    base_url = config('FRONTEND_URL')
+    verification_url = urljoin(base_url, f'verify-email?email={email}&token={token}')
     print(f'{verification_url}')
     subject = "Verify your Email Address"
     message = f"""Hello,
