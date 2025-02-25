@@ -10,7 +10,13 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 # imports to display the expiration timestamps for access JWT & refresh JWT
 from django.conf import settings
 from datetime import datetime
-from .utils import generate_verification_token, store_verification_token, send_verification_email
+from .utils import generate_verification_token, store_verification_token, send_verification_email, store_merchant_data, clear_merchant_data
+from django.contrib.auth.hashers import make_password
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
 
 ###############################################################################################################
@@ -185,7 +191,7 @@ class MerchantRegistrationSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'bvn', 'email', 'phone', 'password', 'confirm_password']
 
         #Extra fields that exist in the model but aren't required in the request
-        extra_fields = ['createdAt', 'updatedAt', 'role', 'email_verification_code', 'is_email_verified']
+        extra_fields = ['createdAt', 'updatedAt', 'role', 'is_email_verified']
 
 
     def validate(self, data):
@@ -206,36 +212,47 @@ class MerchantRegistrationSerializer(serializers.ModelSerializer):
         return data             #Return validated data if all checks pass
     
 
+    
     def create(self, validated_data):
-        """
-        Custom method to create a new Merchant instance.
-        1. Removes the confim_password firld as it's not needed in the database.
-        2. Hashes and stores the password securely.
-        3. Creates a new Merchant instance using the 'create_user' method.
-        4. Generates and stores an email verification token.
-        5. Sends an email verificatiom message.
-        """
-
-        #Remove confirm_password since it's only needed for validation
+    # Remove confirm_password field
         validated_data.pop('confirm_password')
 
-        #Extract and remove password from  the validated data to handle it separately
+        # Get and hash the password
         password = validated_data.pop('password')
+        password_hash = make_password(password)
+        validated_data['password'] = password_hash
 
-        #Create a new Merchant instance with the provided data and hashed password
-        merchant = Merchant.objects.create_user(password=password, **validated_data)
-
-    
-        #Generate, store and send token
+        # Generate the verification token
         token = generate_verification_token()
 
-        #Store the token  associated with the merchant's email 
-        store_verification_token(merchant.email, token)
+        # Convert merchant data to strings
+        merchant_data = {k: str(v) for k, v in validated_data.items()}
 
-        #Send the verification email with the generated token
-        send_verification_email(merchant.email, token)
+        logger.info(f"Generated token: {token}")
+        logger.info(f"Storing merchant data for {merchant_data['email']}")
 
-        return merchant         #Return the created merchant instance 
+        # Store merchant data
+        if store_merchant_data(merchant_data['email'], merchant_data, token):
+            logger.info(f"Merchant data stored for {merchant_data['email']}")
+        
+        # Store verification token in Redis
+            if store_verification_token(merchant_data['email'], token):
+                logger.info(f"Verification token stored for {merchant_data['email']}")
+            
+                # Send verification email
+                if send_verification_email(merchant_data['email'], token):
+                    logger.info(f"Verification email sent to {merchant_data['email']}")
+                    return True
+                else:
+                    clear_merchant_data(merchant_data['email'])
+                    raise serializers.ValidationError('Failed to send verification email')
+            else:
+                raise serializers.ValidationError('Failed to store verification token')
+        else:
+            raise serializers.ValidationError('Failed to process registration')
+
+    
+
 
 
 #Serializer for Email Verification

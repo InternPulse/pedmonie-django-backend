@@ -44,3 +44,11 @@ class SupportMessage(models.Model):
 
     def _str_(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_message = SupportTicket.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
+            if last_message and last_message.sn.isdigit():
+                self.sn = str(int(last_message.sn) + 1)
+            else:
+                self.sn = "1"  # Start from 1 if no records exist
+        super().save(*args, **kwargs)

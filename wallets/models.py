@@ -17,7 +17,7 @@ class Wallet(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_wallet = Wallet.objects.order_by('sn').first()
+            last_wallet = Wallet.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
             if last_wallet and last_wallet.sn.isdigit():
                 self.sn = str(int(last_wallet.sn) + 1)
             else:

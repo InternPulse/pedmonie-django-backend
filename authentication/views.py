@@ -3,9 +3,14 @@ import hashlib
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from .utils import generate_verification_token, store_verification_token, send_verification_email, verify_token
+from .utils import generate_verification_token, store_verification_token, send_verification_email, verify_token, store_merchant_data, clear_merchant_data, get_merchant_data
 import uuid
 from wallets.models import Wallet
+from django.db import transaction
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 # API view allows for message customisation without overriding methods
 # using it since there are 2 endpoints: create, retrieve
@@ -150,20 +155,20 @@ class MerchantViewSet(viewsets.ModelViewSet):
      email verification, authentication, and profile retrival 
     """
 
-    authentication_classes = [JWTAuthentication]
+    # authentication_classes = [JWTAuthentication]
     queryset = Merchant.objects.all()       #Fetch all merchants from the database.
     lookup_field = 'merchant_id'            #Use 'merchant_id' instead of the default primary key for lookups
 
-    def get_authentication_class(self):
+    def get_authentication_classes(self):
         """
         Return the appropriate authentication class based on the requested action.
         """
-        auth_classes = {
-            'signin': None,
-        }
-        return auth_classes.get(self.action, JWTAuthentication)
 
+        if self.action in ['signin', 'verify_email']:
+            return []  #No authentication needed
+        return [JWTAuthentication]      #Default authentication for other actions
         
+
 
     def get_serializer_class(self):
         """
@@ -188,109 +193,128 @@ class MerchantViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
+    
+
+    
+
+
+
+
+
+    
+
     def create(self, request):
-        """
-        Register a new merchant
-        """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            merchant = serializer.save() 
+            token = generate_verification_token()
 
-            #Generate and store an email verification token
-            verification_token = generate_verification_token()
-            if store_verification_token(merchant.email, verification_token):
-                if send_verification_email(merchant.email, verification_token):
-                    refresh = RefreshToken.for_user(merchant)
-                           #Generate a unique serial number for the wallet
-                #     def generate_serial_number():
-                #         return f'WAL-{str(uuid.uuid4())[:8].upper()}'
-                        
+            merchant_data = serializer.validated_data
+            merchant_data.pop('confirm_password', None)
+            merchant_data = {k: str(v) for k, v in merchant_data.items()}
+
+            logger.info(f"Merchant data: {merchant_data}")
+
+            if store_merchant_data(merchant_data['email'], merchant_data):
+                logger.info(f"Merchant data stored successfully.")
+            
+                if store_verification_token(merchant_data['email'], token):
+                    logger.info(f"Verification token stored successfully.")
                 
-                # #Keep generating until we get a unique serial number
-                #     while True:
-                #         sn = generate_serial_number()
-                #         print(sn)
-                #         if not Wallet.objects.filter(sn=sn).exists():
-                #             break
-                #     Wallet.objects.create(
-                #         merchant=merchant,
-                #         sn=sn,
-                #         amount=0.00,
-                #         currency="NGN"
-                #     )
-
-                        
-                    
-                    return Response({
-                        'status': 'True',
-                        'message': 'Merchant registered successfully, Please check your email to verify your account',
-                        'data': {
-                            'merchant_id': merchant.merchant_id,
-                            'email': merchant.email,
-                            'business_name': merchant.business_name,
-                            'first_name': merchant.first_name,
-                            'last_name': merchant.last_name,
-                            'access_token': str(refresh.access_token),
-                            'refresh_token': str(refresh),
-                        }
-                    }, status=status.HTTP_201_CREATED)
+                    if send_verification_email(merchant_data['email'], token):
+                        logger.info(f"Verification email sent.")
+                        return Response({
+                            'status': 'True',
+                            'message': 'Pedmonie verification email sent. Please check your email to complete registration'
+                        }, status=status.HTTP_200_OK)
+                    else:
+                        logger.error(f"Failed to send verification email.")
+                        return Response({
+                            'status': 'False',
+                            'message': 'Failed to send verification email.'
+                        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 else:
+                    logger.error(f"Failed to store verification token.")
                     return Response({
-                        'status': 'warning',
-                        'message': 'Merchant registered but verification email failed to send. Please contact support',
-                        'data': {
-                            'merchant_id': merchant.merchant_id,
-                            'email': merchant.email,
-                            'business_name': merchant.business_name,
-                            'first_name': merchant.first_name,
-                            'last_name': merchant.last_name,
-                        }
+                        'status': 'False',
+                        'message': 'Failed to process registration.'
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
-        return Response({
-            'status': 'False',
-            'message': 'Registration failed',
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                logger.error(f"Failed to store merchant data.")
+                return Response({
+                    'status': 'False',
+                    'message': 'Registration data validation failed.'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            logger.error(f"Invalid serializer data: {serializer.errors}")
+            return Response({
+                'status': 'False',
+                'message': 'Invalid registration data.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
     
-    @action(detail=False, methods=['GET'])
+
+
+    @action(detail=False, methods=['POST'])
     def verify_email(self, request):
-        """
-        Verify merchant's email using a token sent via email
-        """
-        email = request.query_params.get('email')
-        token = request.query_params.get('token')
-        
+        email = request.data.get('email')
+        token = request.data.get('token')
+
         if not email or not token:
             return Response({
                 'status': 'False',
                 'message': 'Email and token are required'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-
         if verify_token(email, token):
-            try:
-                merchant = Merchant.objects.get(email=email)
-                merchant.is_email_verified = True
-                merchant.save()
-                
-             
-
-                return Response({
-                    'status': 'True',
-                    'message': 'Email verified successfully'
-                }, status=status.HTTP_200_OK)
-            except Merchant.DoesNotExist:
+            merchant_data = get_merchant_data(email)
+            if not merchant_data:
                 return Response({
                     'status': 'False',
-                    'message': 'Merchant not found'
-                }, status=status.HTTP_404_NOT_FOUND)
+                    'message': 'Registration data expired or not found'
+                }, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({
-            'status': 'False',
-            'message': 'Invalid or expired verification token'
-        }, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                with transaction.atomic():
 
+                    password = merchant_data.pop('password')
+                    merchant = Merchant.objects.create_user(
+                        password=password,
+                        is_email_verified=True,
+                        **merchant_data
+                    )
+
+                    wallet = Wallet.objects.create(
+                        merchant=merchant,
+                        amount=0.0,
+                        currency='NGN'
+
+                    )
+                    clear_merchant_data(email)
+
+                    refresh = RefreshToken.for_user(merchant)
+
+                    return Response({
+                        'status': 'True',
+                        'message': 'Email verified and account created successfully.',
+                        'data': {
+                            'merchant_id': merchant.merchant_id,
+                            'email': merchant.email,
+                            'business_name': merchant.business_name,
+                            'wallet_id': wallet.wallet_id,
+                            'access_token': str(refresh.access_token),
+                            'refresh_token': str(refresh)
+                        }
+                    }, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                logger.error(f'Error creating merchant account {str(e)}')
+                return Response({
+                    'status': 'False',
+                    'message': 'Failed to create account'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({
+            'status': False,
+            'message':'Invalid or expired verification token',
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
 
     @action(detail=False, methods=['POST'])
     def signin(self, request):
@@ -333,6 +357,8 @@ class MerchantViewSet(viewsets.ModelViewSet):
             'message': 'Invalid credentials'
         }, status=status.HTTP_401_UNAUTHORIZED)
     
+
+    
     def retrieve(self, request, *args, **kwargs):
         """
         Retrieve merchant's  profile details 
@@ -370,13 +396,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         # return get_object_or_404(Merchant, merchant_id=merchant_id)
         self.check_object_permissions(self.request, merchant)
         return merchant
-
-
-
-
-
-
-
+      
 
 
 
