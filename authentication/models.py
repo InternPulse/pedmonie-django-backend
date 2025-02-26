@@ -109,7 +109,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # basic merchant info
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.AutoField(unique=True, db_index=True, verbose_name="Serial Number")
+    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number")
     
 
     # def __str__(self):
@@ -181,6 +181,12 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         ] 
         default_related_name = 'merchants' # this fixes relationship clash
         db_table = 'merchants'
+
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_sn = Merchant.objects.exclude(sn='').order_by('-sn').first()
+            self.sn = last_sn.sn + 1 if last_sn else 1
+        super().save(*args, **kwargs)
 
     # define a __str__ method for human-readable output
     # return merchant
