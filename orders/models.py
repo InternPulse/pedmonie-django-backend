@@ -3,7 +3,7 @@ from authentication.models import Merchant
 import uuid
 
 class Order(models.Model):
-    sn = models.AutoField(unique=True, db_index=True, verbose_name="Serial Number")
+    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number")
     order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     gateway_name = models.CharField(max_length=50)
     merchant = models.ForeignKey(Merchant, on_delete=models.PROTECT, related_name='orders')
@@ -16,6 +16,12 @@ class Order(models.Model):
     ], default="pending")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.sn:  # Only assign if 'sn' is empty
+            last_order = Order.objects.exclude(sn='').order_by('-sn').first()
+            self.sn = last_order.sn + 1 if last_order else 1
+        super().save(*args, **kwargs)
 
 
     class Meta:
