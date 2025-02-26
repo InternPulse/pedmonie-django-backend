@@ -5,7 +5,7 @@ from authentication.models import Merchant
 
 class Wallet(models.Model):
     wallet_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='wallet')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     currency = models.CharField(max_length=3, default="NGN")
