@@ -21,7 +21,7 @@ class PaymentGateway(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = Merchant.objects.exclude(sn='').order_by('-sn').first()
+            last_sn = PaymentGateway.objects.order_by('-sn').first()
             self.sn = last_sn.sn + 1 if last_sn else 1
         super().save(*args, **kwargs)
 

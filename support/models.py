@@ -18,21 +18,13 @@ class SupportTicket(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = SupportTicket.objects.exclude(sn='').order_by('-sn').first()
+            last_sn = SupportTicket.objects.order_by('-sn').first()
             self.sn = last_sn.sn + 1 if last_sn else 1
         super().save(*args, **kwargs)
 
     def _str_(self):
         return f"Ticket {self.ticket_id} - {self.status}"
     
-    def save(self, *args, **kwargs):
-        if not self.sn:  # Only assign if 'sn' is empty
-            last_ticket = SupportTicket.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
-            if last_ticket and last_ticket.sn.isdigit():
-                self.sn = str(int(last_ticket.sn) + 1)
-            else:
-                self.sn = "1"  # Start from 1 if no records exist
-        super().save(*args, **kwargs)
     
    
 
@@ -50,7 +42,7 @@ class SupportMessage(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_sn = SupportMessage.objects.exclude(sn='').order_by('-sn').first()
+            last_sn = SupportMessage.objects.order_by('-sn').first()
             self.sn = last_sn.sn + 1 if last_sn else 1
         super().save(*args, **kwargs)
 

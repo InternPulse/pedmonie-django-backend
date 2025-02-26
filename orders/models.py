@@ -19,7 +19,7 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_order = Order.objects.exclude(sn='').order_by('-sn').first()
+            last_order = Order.objects.order_by('-sn').first()
             self.sn = last_order.sn + 1 if last_order else 1
         super().save(*args, **kwargs)
 
