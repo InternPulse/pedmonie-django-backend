@@ -109,7 +109,7 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     # basic merchant info
     
     merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.AutoField(unique=True, db_index=True, verbose_name="Serial Number")
     
 
     # def __str__(self):
@@ -191,14 +191,6 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         :rtype: str
         """
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
-    def save(self, *args, **kwargs):
-        if not self.sn:  # Only assign if 'sn' is empty
-            last_merchant = Merchant.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
-            if last_merchant and last_merchant.sn.isdigit():
-                self.sn = str(int(last_merchant.sn) + 1)
-            else:
-                self.sn = "1"  # Start from 1 if no records exist
-        super().save(*args, **kwargs)
     
         
     
