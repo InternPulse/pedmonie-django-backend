@@ -5,7 +5,7 @@ from authentication.models import Merchant
 
 class Wallet(models.Model):
     wallet_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.IntegerField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='wallet')
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     currency = models.CharField(max_length=3, default="NGN")
@@ -17,11 +17,8 @@ class Wallet(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_wallet = Wallet.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
-            if last_wallet and last_wallet.sn.isdigit():
-                self.sn = str(int(last_wallet.sn) + 1)
-            else:
-                self.sn = "1"  # Start from 1 if no records exist
+            last_sn = Wallet.objects.exclude(sn='').order_by('-sn').first()
+            self.sn = last_sn.sn + 1 if last_sn else 1
         super().save(*args, **kwargs)
 
 
@@ -36,7 +33,7 @@ class Wallet(models.Model):
 
 class Withdrawal(models.Model):
     withdrawal_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.CharField(max_length=50,unique=True, db_index=True, verbose_name="Serial Number", blank=True)
+    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number", blank=True)
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='withdrawal')
     amount = models.DecimalField(max_digits=19, decimal_places=4)
     initial_balance = models.DecimalField(max_digits=19, decimal_places=4)
@@ -54,13 +51,9 @@ class Withdrawal(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.sn:  # Only assign if 'sn' is empty
-            last_withdrawal = Withdrawal.objects.exclude(sn='').order_by(models.functions.Cast('sn', models.IntegerField()).desc()).first()
-            if last_withdrawal and last_withdrawal.sn.isdigit():
-                self.sn = str(int(last_withdrawal.sn) + 1)
-            else:
-                self.sn = "1"  # Start from 1 if no records exist
+            last_sn = Withdrawal.objects.exclude(sn='').order_by('-sn').first()
+            self.sn = last_sn.sn + 1 if last_sn else 1
         super().save(*args, **kwargs)
-
    
     class Meta:
         db_table = 'withdrawals'
