@@ -4,12 +4,15 @@ from .views import WalletListView, WalletDetailView, RequestWithdrawalView, Merc
 
 urlpatterns = [
     path('admins/wallets/', WalletListView.as_view(), name='wallet-list'),
-    path('admins/wallets/<str:wallet_id>/', WalletDetailView.as_view(), name='wallet-detail'),
+    path('admins/wallets/<str:wallet_id>/',
+         WalletDetailView.as_view(), name='wallet-detail'),
 
     # Withdrawals
-    path("merchants/<uuid:merchant_id>/withdrawals/", RequestWithdrawalView.as_view(), name="request-withdrawal"),
-    path("merchants/<uuid:merchant_id>/withdrawals/all/", MerchantWithdrawalsView.as_view(), name="get-withdrawals"),
-    path("merchants/<uuid:merchant_id>/withdrawals/<uuid:withdrawal_id>/", WithdrawalDetailView.as_view(), name="get-withdrawal"),
+    path("merchants/<uuid:merchant_id>/withdrawals/",
+         RequestWithdrawalView.as_view(), name="request-withdrawal"),
+    path("merchants/<uuid:merchant_id>/withdrawals/all/",
+         MerchantWithdrawalsView.as_view(), name="get-withdrawals"),
+    path("merchants/<uuid:merchant_id>/withdrawals/<uuid:withdrawal_id>/",
+         WithdrawalDetailView.as_view(), name="get-withdrawal"),
 
 ]
-

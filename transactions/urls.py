@@ -16,8 +16,10 @@ router.register(r'transactions', TransactionViewSet, basename='transactions')
 
 urlpatterns = [
     path('admins/', include(router.urls)),
-    path('admins/transactions_by_wallet/', TransactionViewSet.as_view({'get': 'transactions_by_wallet'}), name='transactions_by_wallet'),
-    path('refund_transaction/', TransactionViewSet.as_view({'post': 'refund_transaction'}), name='refund_transaction'),   
+    path('admins/transactions_by_wallet/', TransactionViewSet.as_view(
+        {'get': 'transactions_by_wallet'}), name='transactions_by_wallet'),
+    path('refund_transaction/', TransactionViewSet.as_view(
+        {'post': 'refund_transaction'}), name='refund_transaction'),
 ]
 
 

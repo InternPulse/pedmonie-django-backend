@@ -21,6 +21,7 @@ class MerchantPaymentGatewaySerializer(serializers.ModelSerializer):
         """
         Custom update method to modify a merchant's enabled payment gateways.
         """
-        instance.payment_gateways = validated_data.get("payment_gateways", instance.payment_gateways)
+        instance.payment_gateways = validated_data.get(
+            "payment_gateways", instance.payment_gateways)
         instance.save()
         return instance

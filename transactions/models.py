@@ -1,15 +1,16 @@
 from django.db import models
-from django.db import models
-import uuid 
 from authentication.models import Merchant
 from orders.models import Order
 
 
 class Transaction(models.Model):
     transaction_id = models.UUIDField(primary_key=True)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number")
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_transactions')
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, related_name='transactions')
+    sn = models.IntegerField(unique=True, db_index=True,
+                             verbose_name="Serial Number")
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name='order_transactions')
+    merchant = models.ForeignKey(
+        Merchant, on_delete=models.CASCADE, related_name='transactions')
     gateway_name = models.CharField(max_length=50)
     gateway_transaction_identifier = models.CharField(max_length=50)
     payment_channel = models.CharField(max_length=50)
@@ -34,5 +35,3 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"Transaction {self.transaction_id} - {self.status}"
-
-        

@@ -1,17 +1,9 @@
-import random
-import uuid
-import string
-from django.conf import settings
-import redis
 import logging
-from rest_framework import response
-from django.core.mail import send_mail
-import requests
-import ssl
+import uuid
 from urllib.parse import urljoin
+import redis
+from django.core.mail import send_mail
 from decouple import config
-
-
 
 
 logger = logging.getLogger(__name__)
@@ -22,7 +14,7 @@ redis_client = redis.Redis(
     db=config('REDIS_DB'),
     decode_responses=True,
     username=config('REDIS_USERNAME'),
-    password=config('REDIS_PASSWORD'),    
+    password=config('REDIS_PASSWORD'),
 )
 
 
@@ -32,10 +24,11 @@ def generate_verification_token():
     """
     return str(uuid.uuid4())
 
-    
+
 def store_verification_token(email, token):
     try:
-        sanitized_email = email.replace('@', '_').replace('.', '_')  # Sanitize email
+        sanitized_email = email.replace(
+            '@', '_').replace('.', '_')  # Sanitize email
         logger.info(f"Storing token for {sanitized_email}: {token}")
         result = redis_client.setex(
             f'email_verification:{sanitized_email}',
@@ -46,10 +39,11 @@ def store_verification_token(email, token):
         logger.info(f"Token stored successfully for {sanitized_email}")
         return True
     except redis.RedisError as e:
-        logger.error(f"Redis error storing verification token for {email}: {str(e)}")
+        logger.error(f"Redis error storing verification token for {
+                     email}: {str(e)}")
         return False
 
-    
+
 def store_merchant_data(email, merchant_data):
     """
     Store merchant registration data and verification token
@@ -70,6 +64,7 @@ def store_merchant_data(email, merchant_data):
         logger.error(f'Redis error storing merchant data: {str(e)}')
         return False
 
+
 def get_merchant_data(email):
     """
     Retrieve stored merchant data from redis
@@ -83,6 +78,7 @@ def get_merchant_data(email):
         logger.error(f'Redis error retrieving merchant data: {str(e)}')
         return False
 
+
 def clear_merchant_data(email):
     """
     Clear merchant data and verification token in Redis
@@ -94,17 +90,16 @@ def clear_merchant_data(email):
     except redis.RedisError as e:
         logger.error(f'Redis error clearing merchant data: {str(e)}')
         return False
-    
-
-
 
 
 def verify_token(email, token):
     try:
         sanitized_email = email.replace('@', '_').replace('.', '_')
-        stored_token = redis_client.get(f'email_verification:{sanitized_email}')
+        stored_token = redis_client.get(
+            f'email_verification:{sanitized_email}')
         if not stored_token:
-            logger.warning(f'No verification token found for {sanitized_email}')
+            logger.warning(f'No verification token found for {
+                           sanitized_email}')
             return False
 
         logger.info(f"Comparing token: {stored_token} with {token}")
@@ -115,8 +110,6 @@ def verify_token(email, token):
     except redis.RedisError as e:
         logger.error(f'Redis error verifying token: {str(e)}')
         return False
- 
-
 
 
 def send_verification_email(email, token):
@@ -129,7 +122,8 @@ def send_verification_email(email, token):
     """
 
     base_url = config('FRONTEND_URL')
-    verification_url = urljoin(base_url, f'verify-email?email={email}&token={token}')
+    verification_url = urljoin(
+        base_url, f'verify-email?email={email}&token={token}')
     print(f'{verification_url}')
     subject = "Verify your Email Address"
     message = f"""Hello,
@@ -146,11 +140,3 @@ def send_verification_email(email, token):
     except Exception as e:
         logger.error(f'Error sending verification email: {e}')
         return False
-
-
-
-
-
-
-
-

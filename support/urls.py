@@ -6,7 +6,6 @@ from .views import (
 )
 
 
-
 urlpatterns = [
     path(
         "merchants/support/tickets/",
@@ -39,4 +38,3 @@ urlpatterns = [
         name="create-support-message",
     ),
 ]
-
