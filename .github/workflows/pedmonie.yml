@@ -1,4 +1,4 @@
-name: Pedmonie CI
+name: Pedmonie CI/CD
 
 on: [push, pull_request]
 
