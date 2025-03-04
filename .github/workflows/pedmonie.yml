@@ -50,4 +50,4 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: pedmonie.settings 
         run: |
-          python manage.py test
+          python manage.py test --keepdb
