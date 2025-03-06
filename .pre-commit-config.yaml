@@ -1,0 +1,11 @@
+repos:
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v2.0.4
+    hooks:
+      - id: autopep8
+        language_version: python3
+
+  - repo: https://github.com/pyCQA/flake8
+    rev: 7.1.2
+    hooks:
+      - id: flake8

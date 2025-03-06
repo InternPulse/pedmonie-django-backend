@@ -1,14 +1,12 @@
-
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import SupportTicket, SupportMessage
 from .serializers import SupportTicketSerializer, SupportMessageSerializer, CreateSupportTicketSerializer
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
 # Create your views here.
+
 
 class SupportTicketListView(generics.ListCreateAPIView):
   # ensure the user was authenticated before trying to access the view
@@ -18,7 +16,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff: 
+        if user.is_staff:
             return SupportTicket.objects.all()
         return SupportTicket.objects.filter(merchant=user)
 
@@ -35,6 +33,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(merchant=self.request.user, status="pending")
 
+
 class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
     # ensure the user was authenticated before trying to access the view
     authentication_classes = [JWTAuthentication]
@@ -46,7 +45,7 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-            return SupportTicket.objects.all()  
+            return SupportTicket.objects.all()
         return SupportTicket.objects.filter(merchant=user)
 
     def update(self, request, *args, **kwargs):
@@ -54,7 +53,7 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
             return Response({
                 'status': 'False',
                 'data': 'Only admins can update support tickets.'
-                }, status=status.HTTP_403_FORBIDDEN)
+            }, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
 
@@ -73,7 +72,7 @@ class SupportMessageCreateView(generics.CreateAPIView):
             return Response({
                 'status': 'False',
                 'message': 'You can only send messages to your own support tickets.'
-                }, status=status.HTTP_403_FORBIDDEN,
+            }, status=status.HTTP_403_FORBIDDEN,
             )
 
         serializer = self.get_serializer(data=request.data)
@@ -83,4 +82,4 @@ class SupportMessageCreateView(generics.CreateAPIView):
             'status': 'True',
             'message': 'Ticket successfully created.',
             'data': serializer.data
-            }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED)

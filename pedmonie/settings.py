@@ -9,16 +9,11 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-import environ
 from pathlib import Path
 from datetime import timedelta
 import os
 from decouple import config
-
-
-
-
-
+import environ
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,7 +32,8 @@ SECRET_KEY = config('SECRET_KEY', default='fallback-secret-key')
 # DEBUG = True
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['pedmonie-django-backend.onrender.com', '127.0.0.1', 'pedmonie-pedmonie.b.aivencloud.com']
+ALLOWED_HOSTS = ['pedmonie-django-backend.onrender.com',
+                 '127.0.0.1', 'pedmonie-pedmonie.b.aivencloud.com']
 
 
 # Application definition
@@ -68,7 +64,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'authentication.Merchant'
 
 MIDDLEWARE = [
-    
+
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -78,7 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
+
 ]
 
 ROOT_URLCONF = 'pedmonie.urls'
@@ -93,8 +89,10 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning', # request.version should return 1
-    'DEFAULT_VERSION': 'v1', # DRF expects version numbers without prefixes e.g. 'v', else it would duplicate into /api/vv1/
+    # request.version should return 1
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    # DRF expects version numbers without prefixes e.g. 'v', else it would duplicate into /api/vv1/
+    'DEFAULT_VERSION': 'v1',
     'ALLOWED_VERSIONS': ['v1'],
     'VERSION_PARAM': 'version',
 }
@@ -104,24 +102,27 @@ SIMPLE_JWT = {
     "TOKEN_OBTAIN_SERIALIZER": "authentication.serializers.CustomTokenObtainPairSerializer",
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=3300),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": False, # don't provide a new refresh JWT at the refresh endpoint
-    "BLACKLIST_AFTER_ROTATION": True, # invalidate old refresh tokens
-    # disable last login after token refresh as users abusing the views could slow the server, 
+    # don't provide a new refresh JWT at the refresh endpoint
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": True,  # invalidate old refresh tokens
+    # disable last login after token refresh as users abusing the views could slow the server,
     # - creating a security risk e.g. DoS attack
     # - (set True if throttling is set)
-    "UPDATE_LAST_LOGIN": False, 
-    "SIGNING_KEY": config('JWT_SECRET_KEY', default=None), # Django secret is backup
-    "ALGORITHM": "HS256", # defaults to using 256-bit HMAC signing
+    "UPDATE_LAST_LOGIN": False,
+    # Django secret is backup
+    "SIGNING_KEY": config('JWT_SECRET_KEY', default=None),
+    "ALGORITHM": "HS256",  # defaults to using 256-bit HMAC signing
     "AUTH_HEADER_TYPES": ("Bearer",),
-    "USER_ID_FIELD": "merchant_id", # use merchant_id instead of id
-    "USER_ID_CLAIM": "merchant_id", # use merchant_id in the token claims
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",), # specify that JWT is used for authorisation
+    "USER_ID_FIELD": "merchant_id",  # use merchant_id instead of id
+    "USER_ID_CLAIM": "merchant_id",  # use merchant_id in the token claims
+    # specify that JWT is used for authorisation
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
 }
 
 # raise an error if there is no JWT_SECRET_KEY
 # use `python -c "import secrets; print(secrets.token_hex(32))"` command & save it to .env
 if SIMPLE_JWT["SIGNING_KEY"] is None:
-    raise ValueError("JWT_SECRET_KEY is not set in the environment variables.") 
+    raise ValueError("JWT_SECRET_KEY is not set in the environment variables.")
 
 TEMPLATES = [
     {
@@ -146,20 +147,18 @@ WSGI_APPLICATION = 'pedmonie.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 
-
-
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME'),  # Change to your DB name in .env file
-        'USER': config('DB_USER'),         # Change to your MySQL username in .env file
-        'PASSWORD': config('DB_PASSWORD'),  # Change to your MySQL password in .env file
+        # Change to your MySQL username in .env file
+        'USER': config('DB_USER'),
+        # Change to your MySQL password in .env file
+        'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
     }
 }
-
 
 
 # Password validation
@@ -199,7 +198,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-
 # https://help.pythonanywhere.com/pages/DjangoStaticFiles#set-static_root-in-settingspy
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -219,13 +217,12 @@ if not os.path.exists(os.path.join(BASE_DIR, 'static')):
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-#Redis settings
+# Redis settings
 REDIS_HOST = config('REDIS_HOST')
 REDIS_PORT = config('REDIS_PORT')
 REDIS_DB = config('REDIS_DB')
 REDIS_USERNAME = config('REDIS_USERNAME')
 REDIS_PASSWORD = config('REDIS_PASSWORD')
-
 
 
 CACHES = {
@@ -239,25 +236,21 @@ CACHES = {
 }
 
 
-
-
-EMAIL_VERIFICATION_TIMEOUT = config('EMAIL_VERIFICATION_TIMEOUT') 
+EMAIL_VERIFICATION_TIMEOUT = config('EMAIL_VERIFICATION_TIMEOUT')
 VERIFICATION_CODE_LENGTH = config('VERIFICATION_CODE_LENGTH')
 
 
-EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST="smtp.hostinger.com"  
-EMAIL_PORT=465  
-EMAIL_USE_SSL=True  
-EMAIL_USE_TLS=False
-EMAIL_HOST_USER="noreply@evergreenrealityhomes.com"  
-EMAIL_HOST_PASSWORD="Avnadmin25@"
-DEFAULT_FROM_EMAIL="noreply@evergreenrealityhomes.com" 
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.hostinger.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = "noreply@evergreenrealityhomes.com"
+EMAIL_HOST_PASSWORD = "Avnadmin25@"
+DEFAULT_FROM_EMAIL = "noreply@evergreenrealityhomes.com"
 # EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 # EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 # FROM_EMAIL = config('FROM_EMAIL')
-
-
 
 
 FRONTEND_URL = config('FRONTEND_URL')
@@ -292,4 +285,3 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     "https://pedmonie-django-backend.onrender.com"
 ]
-

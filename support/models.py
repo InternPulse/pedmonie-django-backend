@@ -1,14 +1,19 @@
-
-from django.db import models
 import uuid
+from django.db import models
 from authentication.models import Merchant
 
 # Create your models here.
+
+
 class SupportTicket(models.Model):
-    ticket_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number")
-    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={'role': 'merchant'}, related_name='support_ticket')
-    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
+    ticket_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    sn = models.IntegerField(unique=True, db_index=True,
+                             verbose_name="Serial Number")
+    merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE, limit_choices_to={
+                                 'role': 'merchant'}, related_name='support_ticket')
+    status = models.CharField(max_length=20, choices=[(
+        'pending', 'Pending'), ('resolved', 'Resolved')], default='pending')
     description = models.TextField()
     createdAt = models.DateTimeField(auto_now_add=True)
 
@@ -24,13 +29,13 @@ class SupportTicket(models.Model):
 
     def _str_(self):
         return f"Ticket {self.ticket_id} - {self.status}"
-    
-    
-   
+
 
 class SupportMessage(models.Model):
-    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number")
+    message_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    sn = models.IntegerField(unique=True, db_index=True,
+                             verbose_name="Serial Number")
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE)
     sender = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     message = models.TextField()
@@ -48,4 +53,3 @@ class SupportMessage(models.Model):
 
     def _str_(self):
         return f"Message {self.message_id} on Ticket {self.ticket.ticket_id}"
-    

@@ -1,54 +1,43 @@
+import logging
+# API view allows for message customisation without overriding methods
+# using it since there are 2 endpoints: create, retrieve
+from rest_framework.views import APIView
+# handle API responses with proper formatting
+from rest_framework.response import Response
+# use JWT token-based authentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.shortcuts import get_object_or_404
-import hashlib
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+# import Django's exception for handling objects that do not exist
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from .utils import generate_verification_token, store_verification_token, send_verification_email, verify_token, store_merchant_data, clear_merchant_data, get_merchant_data
-import uuid
+# import JWT token view to generate a token
+from rest_framework_simplejwt.views import TokenObtainPairView
+# import custom serializer for a custom view to obtain a token
+from .serializers import CustomTokenObtainPairSerializer
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import permissions, status, viewsets
+# import Merchant model from the current directory
+from .models import Merchant
 from wallets.models import Wallet
 from django.db import transaction
-import logging
+# import serializer for superuser (Admin) user operations
+from .serializers import AdminSerializer, MerchantRegistrationSerializer, MerchantProfileSerializer, MerchantLoginSerializer, VerifyEmailSerializer
 
 
 logger = logging.getLogger(__name__)
 
-# API view allows for message customisation without overriding methods
-# using it since there are 2 endpoints: create, retrieve
-from rest_framework.views import APIView
-
-# handle API responses with proper formatting
-from rest_framework.response import Response
-
 # provide permission classes & HTTP status codes for API endpoints
 # https://www.django-rest-framework.org/tutorial/3-class-based-views/#using-generic-class-based-views
-from rest_framework import permissions, status, viewsets
 
-# use JWT token-based authentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
-# import Merchant model from the current directory
-from .models import Merchant
-
-# import serializer for superuser (Admin) user operations
-from .serializers import AdminSerializer, MerchantRegistrationSerializer, MerchantProfileSerializer, MerchantLoginSerializer, VerifyEmailSerializer
-
-# import Django's exception for handling objects that do not exist
-from django.core.exceptions import ObjectDoesNotExist 
-
-# import JWT token view to generate a token
-from rest_framework_simplejwt.views import TokenObtainPairView
-
-# import custom serializer for a custom view to obtain a token 
-from .serializers import CustomTokenObtainPairSerializer
-
-
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
 
 ###############################################################################################################
 
 # create a custom view that inherits from DRF's built-in token view to generate a JWT token with custom claims
-# - uses custom serializer for email-based authentication & add custom custom claims 
+# - uses custom serializer for email-based authentication & add custom custom claims
 # keep the custom JWT setting local to the auth app, instead of doing it in settings.py making it global
 # https://django-rest-framework-simplejwt.readthedocs.io/en/latest/customizing_token_claims.html#customizing-token-claims
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -56,6 +45,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 # a class to create & retrieve superusers
+
+
 class AdminView(APIView):
     # set JWT as the authentication method for this view (needs a valid token in request header)
     authentication_classes = [JWTAuthentication]
@@ -79,31 +70,32 @@ class AdminView(APIView):
         if serializer.is_valid():
             # save the superuser
             # ensure only superadmins get created
-            serializer.save(role='superadmin', is_staff=True, is_superuser=True)
+            serializer.save(role='superadmin',
+                            is_staff=True, is_superuser=True)
 
-            # return a response with a message if the Superadmin was created        
+            # return a response with a message if the Superadmin was created
             return Response(
                 {
                     "status": "success",
                     "code": 201,
                     "message": "Successfully added a Superadmin",
-                    "data": serializer.data,                
-                },            
-                status=status.HTTP_201_CREATED,             
-                )    
-        
-        # return a response with an unsuccessful message if the Superadmin was not created        
+                    "data": serializer.data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        # return a response with an unsuccessful message if the Superadmin was not created
         return Response(
             {
                 "status": "error",
                 "code": 400,
-                "message": "Unsuccessful creating a Superadmin with invalid data",    
-                "errors": serializer.errors,            
-                "data": serializer.data,                
-            },            
-            status=status.HTTP_400_BAD_REQUEST,             
-            )
-    
+                "message": "Unsuccessful creating a Superadmin with invalid data",
+                "errors": serializer.errors,
+                "data": serializer.data,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     # a method to retrieve a Superadmin
     def get(self, request, merchant_id=None):
         """Retrieve a Superadmin by their merchant_id.
@@ -119,7 +111,8 @@ class AdminView(APIView):
         try:
             # get the superadmin object
             # if the superadmin does not exist, return a 404 error
-            superadmin = Merchant.objects.get(merchant_id=merchant_id, is_superuser=True)
+            superadmin = Merchant.objects.get(
+                merchant_id=merchant_id, is_superuser=True)
 
             # serialize the superadmin object
             serializer = AdminSerializer(superadmin)
@@ -133,8 +126,8 @@ class AdminView(APIView):
                     "data": serializer.data,
                 },
                 status=status.HTTP_200_OK,
-                )
-        
+            )
+
         except ObjectDoesNotExist:
             # return a response with a message if the Superadmin does not exist
             return Response(
@@ -145,19 +138,19 @@ class AdminView(APIView):
                     "data": None,
                 },
                 status=status.HTTP_404_NOT_FOUND,
-                )
-
+            )
 
 
 class MerchantViewSet(viewsets.ModelViewSet):
     """
-    Viewset for handling all merchant operations including, registration, 
-     email verification, authentication, and profile retrival 
+    Viewset for handling all merchant operations including, registration,
+     email verification, authentication, and profile retrival
     """
 
     # authentication_classes = [JWTAuthentication]
-    queryset = Merchant.objects.all()       #Fetch all merchants from the database.
-    lookup_field = 'merchant_id'            #Use 'merchant_id' instead of the default primary key for lookups
+    queryset = Merchant.objects.all()  # Fetch all merchants from the database.
+    # Use 'merchant_id' instead of the default primary key for lookups
+    lookup_field = 'merchant_id'
 
     def get_authentication_classes(self):
         """
@@ -165,10 +158,8 @@ class MerchantViewSet(viewsets.ModelViewSet):
         """
 
         if self.action in ['signin', 'verify_email']:
-            return []  #No authentication needed
-        return [JWTAuthentication]      #Default authentication for other actions
-        
-
+            return []  # No authentication needed
+        return [JWTAuthentication]  # Default authentication for other actions
 
     def get_serializer_class(self):
         """
@@ -181,6 +172,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
         elif self.action == 'signin':
             return MerchantLoginSerializer
         return MerchantProfileSerializer
+
     def get_permissions(self):
         """
         Return appropriate permission class based on the requested action.
@@ -192,16 +184,6 @@ class MerchantViewSet(viewsets.ModelViewSet):
         else:
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
-
-    
-
-    
-
-
-
-
-
-    
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -216,10 +198,10 @@ class MerchantViewSet(viewsets.ModelViewSet):
 
             if store_merchant_data(merchant_data['email'], merchant_data):
                 logger.info(f"Merchant data stored successfully.")
-            
+
                 if store_verification_token(merchant_data['email'], token):
                     logger.info(f"Verification token stored successfully.")
-                
+
                     if send_verification_email(merchant_data['email'], token):
                         logger.info(f"Verification email sent.")
                         return Response({
@@ -251,9 +233,6 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 'message': 'Invalid registration data.'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-    
-
-
     @action(detail=False, methods=['POST'])
     def verify_email(self, request):
         email = request.data.get('email')
@@ -271,7 +250,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                     'status': 'False',
                     'message': 'Registration data expired or not found'
                 }, status=status.HTTP_400_BAD_REQUEST)
-        
+
             try:
                 with transaction.atomic():
 
@@ -312,9 +291,8 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({
             'status': False,
-            'message':'Invalid or expired verification token',
+            'message': 'Invalid or expired verification token',
         }, status=status.HTTP_400_BAD_REQUEST)
-    
 
     @action(detail=False, methods=['POST'])
     def signin(self, request):
@@ -323,17 +301,18 @@ class MerchantViewSet(viewsets.ModelViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email'] 
+            email = serializer.validated_data['email']
             password = serializer.validated_data['password']
 
             merchant = authenticate(email=email, password=password)
 
             if merchant:
                 if not merchant.is_email_verified:
-                    #generate a  new verification token and send email again
+                    # generate a  new verification token and send email again
                     verification_token = generate_verification_token()
                     if store_verification_token(merchant.email, verification_token):
-                        send_verification_email(merchant.email, verification_token)
+                        send_verification_email(
+                            merchant.email, verification_token)
                     return Response({
                         'status': 'error',
                         'message': 'Email not verified. A new verification link has been sent to your email'
@@ -351,21 +330,19 @@ class MerchantViewSet(viewsets.ModelViewSet):
                         'is_email_verified': merchant.is_email_verified
                     }
                 }, status=status.HTTP_200_OK)
-            
+
         return Response({
             'status': 'False',
             'message': 'Invalid credentials'
         }, status=status.HTTP_401_UNAUTHORIZED)
-    
 
-    
     def retrieve(self, request, *args, **kwargs):
         """
-        Retrieve merchant's  profile details 
+        Retrieve merchant's  profile details
         """
         instance = self.get_object()
 
-        #Check if the requesting user is the profile owner
+        # Check if the requesting user is the profile owner
         if not request.user.is_authenticated or request.user.merchant_id != instance.merchant_id:
             return Response({
                 'status': 'False',
@@ -383,7 +360,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
             'message': 'Merchant profile retrieved successfully',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
-    
+
     def get_object(self):
         """
         Override to lookup merchant by merchant_id instead of the default primary key.
@@ -396,19 +373,3 @@ class MerchantViewSet(viewsets.ModelViewSet):
         # return get_object_or_404(Merchant, merchant_id=merchant_id)
         self.check_object_permissions(self.request, merchant)
         return merchant
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

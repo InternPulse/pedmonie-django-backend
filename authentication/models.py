@@ -1,9 +1,7 @@
-# Django model system for DB table definitions
-from django.db import models
-
 # UUID for generating unique identifiers
 import uuid
-
+# Django model system for DB table definitions
+from django.db import models
 # use Django's built-in authentication system
 # import core Django auth classes for custom user model implementation
 # provide core user functionality, user creation, support for permissions & groups, respectively
@@ -12,7 +10,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
-
 
 
 ##########################################################################################################
@@ -35,7 +32,7 @@ class MerchantManager(BaseUserManager):
         :raises ValueError: If email invalid or not provided
         :return: New merchant user instance
         :rtype: Merchant
-        """        
+        """
         # validate the presence of email
         # normalise the email to convert to lowercase & validate format
         if not email:
@@ -44,12 +41,12 @@ class MerchantManager(BaseUserManager):
 
         # create new user instance with email & additional fields
         user = self.model(email=email, **extra_fields)
-        
+
         # use Django's built-in password hashing
         # - instead of storing password_hash manually
         user.set_password(password)
 
-        # save the merchant user 
+        # save the merchant user
         # return the user
         user.save(using=self._db)
         return user
@@ -75,19 +72,19 @@ class MerchantManager(BaseUserManager):
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
-       
+
         # ensure superadmin role for superuser creation
         extra_fields.setdefault('role', 'superadmin')
         if extra_fields.get('role') != 'superadmin':
             raise ValueError('Superuser must have role=superadmin.')
-        
+
         # Django auth-specific field to ensure superuser has admin access
-        extra_fields.setdefault('is_staff', True)        
+        extra_fields.setdefault('is_staff', True)
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superadmin must have is_staff=True.')
-        
+
         # Django auth-specific field from PermissionsMixin to ensure superuser has full system permissions
-        extra_fields.setdefault('is_superuser', True)        
+        extra_fields.setdefault('is_superuser', True)
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superadmin must have is_superuser=True.')
 
@@ -95,6 +92,8 @@ class MerchantManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 # Merchant model inherits from AbstractBaseUser for authentication capabilities (JWT implementation handled with REST framework)
+
+
 class Merchant(AbstractBaseUser, PermissionsMixin):
     """Merchant model for storing user account information and KYC details.
     Uses email as the unique identifier for login (USERNAME_FIELD).
@@ -107,34 +106,44 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     :rtype: Merchant
     """
     # basic merchant info
-    
-    merchant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sn = models.IntegerField(unique=True, db_index=True, verbose_name="Serial Number")
-    
+
+    merchant_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    sn = models.IntegerField(unique=True, db_index=True,
+                             verbose_name="Serial Number")
 
     # def __str__(self):
     #     return self.sn
-    first_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)], default='')   
-    last_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
-    middle_name = models.CharField(max_length=50, blank=True, help_text=_('(Optional)'))
-    business_name = models.CharField(max_length=50, validators=[MinLengthValidator(2)])
-    email = models.EmailField(max_length=50, unique=True, validators=[EmailValidator()])
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
+    first_name = models.CharField(max_length=50, validators=[
+                                  MinLengthValidator(2)], default='')
+    last_name = models.CharField(max_length=50, validators=[
+                                 MinLengthValidator(2)])
+    middle_name = models.CharField(
+        max_length=50, blank=True, help_text=_('(Optional)'))
+    business_name = models.CharField(
+        max_length=50, validators=[MinLengthValidator(2)])
+    email = models.EmailField(
+        max_length=50, unique=True, validators=[EmailValidator()])
+    phone_regex = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+234'. Up to 15 digits allowed.")
     phone = models.CharField(max_length=15)
-    
-    
+
     # account status & role
-    is_email_verified = models.BooleanField(default=False)    
-    role = models.CharField(max_length=20, choices=[('merchant', 'Merchant'), ('superadmin', 'Super Admin')], default='merchant')
+    is_email_verified = models.BooleanField(default=False)
+    role = models.CharField(max_length=20, choices=[(
+        'merchant', 'Merchant'), ('superadmin', 'Super Admin')], default='merchant')
     # total_balance = models.DecimalField(max_digits=19, decimal_places=4, default=0.0)
-    is_staff = models.BooleanField(default=False)  # Allows superadmin access to Django Admin
+    # Allows superadmin access to Django Admin
+    is_staff = models.BooleanField(default=False)
 
     # KYC verification fields
     nin = models.CharField(max_length=30, unique=True, null=True, blank=True)
     is_nin_verified = models.BooleanField(default=False)
-    bvn = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_('(Bank Verification Number)'))
+    bvn = models.CharField(max_length=30, unique=True, null=True,
+                           blank=True, help_text=_('(Bank Verification Number)'))
     is_bvn_verified = models.BooleanField(default=False)
-    cac_number = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_('(Corporate Affairs Commission)'))
+    cac_number = models.CharField(max_length=30, unique=True, null=True, blank=True, help_text=_(
+        '(Corporate Affairs Commission)'))
     is_business_cac_verified = models.BooleanField(default=False)
 
     # document uploads
@@ -144,18 +153,15 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
 
     # timestamps
     createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True) 
-    
-
+    updatedAt = models.DateTimeField(auto_now=True)
 
     # custom manager for creating users & superusers
     objects = MerchantManager()
 
-    #Added id property for SimpleJWT compatibility
+    # Added id property for SimpleJWT compatibility
     @property
     def id(self):
         return self.merchant_id
-      
 
     # specify email as the login identifier
     USERNAME_FIELD = 'email'
@@ -178,8 +184,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
             ("manage_wallets", "Can manage merchant wallets"),
             ("manage_transactions", "Can manage merchant transactions"),
             ("manage_merchants", "Can manage other merchants"),
-        ] 
-        default_related_name = 'merchants' # this fixes relationship clash
+        ]
+        default_related_name = 'merchants'  # this fixes relationship clash
         db_table = 'merchants'
 
     def save(self, *args, **kwargs):
@@ -197,6 +203,3 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
         :rtype: str
         """
         return f"({self.role}), {self.first_name} {self.last_name} {self.business_name}"
-    
-        
-    
