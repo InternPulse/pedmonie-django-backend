@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    name: Run Django Tests
+    name: Run Django Tests & Linting
     runs-on: ubuntu-latest
 
     env:
@@ -41,7 +41,17 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt  
+          pip install -r requirements.txt
+          pip install flake8 black radon
+          
+      - name: Run Flake8 Linter
+        run: flake8 . --count --show-source --statistics
+
+      - name: Check formatting with Black
+        run: black --check .
+
+      - name: Run Radon for Code Complexity
+        run: radon cc . -a
 
       - name: Run Django Migrations
         run: python manage.py migrate
