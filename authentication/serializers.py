@@ -292,4 +292,76 @@ class MerchantProfileSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'middle_name', 'business_name', 'email', 'phone', 'is_email_verified',
                   'role', 'createdAt', 'updatedAt'
         ]
+class DocumentUploadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for merchant to upload their KYC documents 
+    """
+   
+    nin = serializers.CharField(required=True)
+    cac_number = serializers.CharField(required=True)
+    id_card = serializers.ImageField(required=True)
+    passport = serializers.ImageField(required=True)
+
+
+    class Meta:
+        model = Merchant
+        fields = ['nin', 'cac_number', 'id_card', 'passport']
+
+    def validate(self, data):
+        """
+        Validate that all required information are provided
+        """
+
+        
+        if not data.get('nin'):
+            raise serializers.ValidationError({'nin', 'NIN is required.'})
+        if not data.get('cac_number'):
+            raise serializers.ValidationError({'cac_number': 'CAC number is required.'})
+        if not data.get('id_card'):
+            raise serializers.ValidationError({'id_card': 'ID card is required.'})
+        if not data.get('passport'):
+            raise serializers.ValidationError({'passport': 'PASSPORT is required.'})
+        
+        return data
+
+class VerifyMerchantSerializer(serializers.ModelSerializer):
+    """
+    Serializer for superadmin to verify merchany KYC documents
+    """
+    is_bvn_verified = serializers.BooleanField(required=False)
+    is_nin_verified = serializers.BooleanField(required=False)
+    is_business_cac_verfied = serializers.BooleanField(required=False)
+    
+    class Meta:
+        model = Merchant
+        fields = ['is_bvn_verified', 'is_nin_verfied', 'is_business_cac_verified']
+
+    def validate(self, data):
+        """
+        Validate that only authorized users can verify KYC
+        """
+        request = self.context.get('request')
+        if not request or not request.user.is_superuser:
+            raise serializers.ValidationError('Only superadmins can verify KYC')
+        return data
+    def update(self , instance, validated_data):
+        """
+        Update merchant verification status
+        """
+
+        if 'is_bvn_verified' in validated_data:
+            instance.is_bvn_verified = validated_data['is_bvn_verified']
+        if 'is_nin_verified' in validated_data:
+            instance.is_nin_verified = validated_data['is_nin_verified']
+        if 'is_bunisess_cac_verified' in validated_data:
+            instance.is_bunisess_cac_verified = validated_data['is_bunisess_cac_verified']
+        
+        if instance.is_bvn_verified and instance.is_nin_verified and instance.is_bunisess_cac_verified:
+            instance.is_kyc_verified = True
+        else:
+            instance.is_kyc_verified = False
+        instance.save()
+        return instance
+    
+            
 

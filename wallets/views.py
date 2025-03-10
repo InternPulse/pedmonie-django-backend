@@ -72,7 +72,7 @@ class WalletDetailView(APIView):
         return Response({
             'status': 'True',
             'message': 'Wallet successfully deleted.'
-            },status=status.HTTP_204_NO_CONTENT)
+            },status=status.HTTP_200_OK)
 
 
 class RequestWithdrawalView(APIView):

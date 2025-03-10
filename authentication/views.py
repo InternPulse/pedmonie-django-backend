@@ -30,7 +30,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Merchant
 
 # import serializer for superuser (Admin) user operations
-from .serializers import AdminSerializer, MerchantRegistrationSerializer, MerchantProfileSerializer, MerchantLoginSerializer, VerifyEmailSerializer
+from .serializers import AdminSerializer, MerchantRegistrationSerializer, MerchantProfileSerializer, MerchantLoginSerializer, VerifyEmailSerializer, VerifyMerchantSerializer, DocumentUploadSerializer
 
 # import Django's exception for handling objects that do not exist
 from django.core.exceptions import ObjectDoesNotExist 
@@ -44,6 +44,7 @@ from .serializers import CustomTokenObtainPairSerializer
 
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from .utils import verify_nin, verify_bvn
 
 ###############################################################################################################
 
@@ -130,7 +131,7 @@ class AdminView(APIView):
                     "status": "True",
                     "code": 200,
                     "message": f"Successfully retrieved the Superadmin merchant with ID: {merchant_id}.",
-                    "data": serializer.data,
+                    "data": serializer.data                                                                                   
                 },
                 status=status.HTTP_200_OK,
                 )
@@ -180,6 +181,8 @@ class MerchantViewSet(viewsets.ModelViewSet):
             return VerifyEmailSerializer
         elif self.action == 'signin':
             return MerchantLoginSerializer
+        elif self.action == 'verify_merchant':
+            return VerifyMerchantSerializer
         return MerchantProfileSerializer
     def get_permissions(self):
         """
@@ -193,15 +196,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    
-
-    
-
-
-
-
-
-    
+ 
 
     def create(self, request):
         serializer = self.get_serializer(data=request.data)
@@ -396,14 +391,264 @@ class MerchantViewSet(viewsets.ModelViewSet):
         # return get_object_or_404(Merchant, merchant_id=merchant_id)
         self.check_object_permissions(self.request, merchant)
         return merchant
-      
+    
+    @action(detail=True, methods=['POST'])
+    def upload_document(self, request, merchant_id=None):
+        """
+        Allow mertchants to upload  their KYC documents
+        """
+        #Get merchant object
+        merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
+
+        #Check if the requesting merchant is the profile owner
+        if str(request.user.merchant_id) != str(merchant_id):
+            return Response({
+                'status': 'False',
+                'message': 'Access denied: You can only upload documents for your owmn profile'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        #validate email verification
+        if not merchant.is_email_verified:
+            return Response({
+                'status': 'False',
+                'message': 'Please verify your email before uploading KYC documents.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        #Create serializer with request
+        serializer = DocumentUploadSerializer(merchant, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            try:
+                serializer.save()
+                return Response({
+                    'status': 'True',
+                    'message': 'KYC documents uploaded successfully. Pedmonie Team will be in touch shortly.',
+                    'data': {
+                        'nin_summitted': True,
+                        'cac_submitted': True,
+                        'id_card_uploaded': True,
+                        'passport_uploaded': True
+                    }
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f'Error uploading KYC documents: {str(e)}')
+                return Response({
+                    'status': 'False',
+                    'message': f'Failed to upload doccuments: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({
+            'status': 'False',
+            'message': 'Invalid document data',
+            'data': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['POST'])
+    def verify_merchant(self, request, merchant_id=None):
+        """
+        Verify merchant identity with BVN, NIN and CAC number
+        """
+
+        merchant = self.get_object()
+
+        #check if the requesting merchant is the profile owner or superadmin
+        if not request.user.is_authenticated or (request.user.merchant_id != merchant.merchant_id and not request.user.is_staff):
+            return Response({
+                'status': 'False',
+                'message': 'Access denied: You do not have permission to upload documents for this profile.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        #vaidate email verification
+        if not merchant.is_email_verified:
+            return Response({
+                'status': 'error',
+                'message': 'Please verify your email before uploading KYC documents.'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        #Validate required fields
+        bvn = request.data.get('bvn')
+        nin = request.data.get('nin')
+        cac_number = request.data.get('cac_number')
+        date_of_birth = request.data.get('date_of_birth')
+
+        if not all([ nin, cac_number, date_of_birth]):
+            return Response({
+                'status': 'error',
+                'message': 'BVN, NIN, CAC number and date of birth are required.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        #Use serializer for validation
+        serializer = self.get_serializer(merchant, data=request.data, partial=True)
+        if not serializer.is_valid():
+            return Response({
+                'status': 'error',
+                'message': 'Invalid data provided.',
+                'data': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            #save the indentification information first
+            merchant.bvn = bvn
+            merchant.nin = nin
+            merchant.cac_number = cac_number
+            merchant.save()
+
+            bvn_verification = verify_bvn(
+                bvn,
+                merchant.first_name,
+                merchant.last_name,
+                date_of_birth,
+            )
+            nin_verification = verify_nin(
+                nin,
+                merchant.first_name,
+                merchant.last_name,
+                date_of_birth,
+                merchant.merchant_id
+            )
+            is_bvn_verified = bvn_verification.get('status') == 'success'
+            is_nin_verified = nin_verification.get('status') == 'success'
+
+            if is_bvn_verified:
+                merchant.is_bvn_verified = True
+
+            if is_nin_verified:
+                merchant.is_nin_verified = True
+
+            merchant.save()
+
+            if is_bvn_verified and is_nin_verified:
+                verification_status = 'success'
+                message = 'Merchant verification successful'
+            elif is_bvn_verified:
+                verification_status = 'partial'
+                message = ' BVN verified successfully, but NIN verification failed'
+            elif is_nin_verified:
+                verification_status = 'success'
+                message = 'NIN verified successfully but BVN verification failed'
+            else:
+                verification_status = 'error'
+                message = ' Both NIN and BVN verification failed'
+            
+            return Response({
+                'status': verification_status,
+                'message': message,
+                'data': {
+                    'merchant_id': merchant.merchant_id,
+                    'email': merchant.email,
+                    'is_email_verified': merchant.is_email_verified,
+                    'bvn': merchant.bvn,
+                    'is_bvn_verified': merchant.is_bvn_verified,
+                    'nin': merchant.nin,
+                    'is_nin_verified': merchant.is_nin_verified,
+                    'verification_details': {
+                        'bvn': bvn_verification.get('data') if is_bvn_verified else None,
+                        'nin': nin_verification.get('data') if is_nin_verified else None
+                    }
+                }
+
+            }, status=status.HTTP_200_OK if verification_status != 'error' else status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f'Error verifying merchant {merchant.merchant_id}: {str(e)}')
+            return Response({
+                'status': 'error',
+                'message': 'An error occured during verification'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 
 
 
 
+    
+    @action(detail=True, methods=['POST'])
+    def verify_kyc(self, request, merchant_id=None):
+        """
+        Allow superadmin to verify merchant KYC documents
+        """
+        #Get merchant object
+        merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
 
+        #Check if the merchant has submitted documents
+        if not merchant.bvn or not merchant.nin or not merchant.cac_number or not merchant_id or not merchant.passport:
+            return Response({
+                'status': 'False',
+                'message': 'Merchant has not submitted all required KYC documents.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        #Create serializer with request data
+        serializer = VerifyMerchantSerializer(
+            merchant,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+        if serializer.is_valid():
+            try:
+                #Update verification status
+                serializer.save()
 
+                #Chedk if all  verfication is complete
+                is_fully_verified = merchant.is_bvn_verified
 
+                return Response({
+                    'status': 'True',
+                    'message': 'Merchant KYC verification status updated successfully.',
+                    'data': {
+                        'merchant_id': str(merchant.merchant_id),
+                        'email': merchant.email,
+                        'business_name': merchant.business_name,
+                        'is_bvn_verified': merchant.is_bvn_verified,
+                        'is_nin_verified': merchant.is_nin_verified,
+                        'is_business_cac_verified': merchant.is_business_cac_verified,
+                        'is_kyc_verified': merchant.is_kyc_verified,
+                        'verification_complete': is_fully_verified
+                    }
+                }, status=status.HTTP_200_OK)
+            except Exception as e:
+                logger.error(f'Error verifying merchant documents: {str(e)}')
+                return Response({
+                    'status': 'False',
+                    'message': f'Failed to update verification status: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({
+            'status': 'False',
+            'message': 'Invalid verification data',
+            'data': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['GET'])
+    def kyc_status(self, request, merchant_id=None):
+        """
+        Get the current verification status for a merchant's KYC
+        """
+
+        #Get the merchant object
+        merchant = get_object_or_404(Merchant, merchant_id=merchant_id)
+        
+        #check if the request merchant is the profile owner or superadmin
+        if str(request.user.merchant_id) != str(merchant_id) and not request.user.is_superuser:
+            return Response({
+                'status': 'False',
+                'message': 'Access denied: You can only view your own verification status'
+            }, status=status.HTTP_403_FORBIDDEN)
+        return Response({
+            'status': 'True',
+            'message': 'KYC verification status retrieved successfully.',
+            'data': {
+                'merchant_id': str(merchant.merchant_id),
+                'email': merchant.email,
+                'business_name': merchant.business_name,
+                'document_submited': {
+                    'nin': bool(merchant.nin),
+                    'cac': bool(merchant.cac_number),
+                    'id_card': bool(merchant.id_card),
+                    'passport': bool(merchant.passport)
+                },
+                'verification_status': {
+                    'is_bvn_verified': merchant.is_bvn_verified,
+                    'is_nin_verified': merchant.is_nin_verified,
+                    'is_business_cac_verifed': merchant.is_business_cac_verified,
+                    'is_kyc_verified': merchant.is_kyc_verified                
+                    }
+            }
+        }, status=status.HTTP_200_OK)
 
 
 

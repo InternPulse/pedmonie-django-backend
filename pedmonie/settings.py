@@ -249,13 +249,10 @@ EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST="smtp.hostinger.com"  
 EMAIL_PORT=465  
 EMAIL_USE_SSL=True  
-EMAIL_USE_TLS=False
-EMAIL_HOST_USER="noreply@evergreenrealityhomes.com"  
-EMAIL_HOST_PASSWORD="Avnadmin25@"
-DEFAULT_FROM_EMAIL="noreply@evergreenrealityhomes.com" 
-# EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-# FROM_EMAIL = config('FROM_EMAIL')
+EMAIL_USE_TLS=False 
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+FROM_EMAIL = config('FROM_EMAIL')
 
 
 
@@ -293,3 +290,4 @@ CSRF_TRUSTED_ORIGINS = [
     "https://pedmonie-django-backend.onrender.com"
 ]
 
+DEFAULT_FILE_STORAGE = config('DEFAULT_FILE_STORAGE')

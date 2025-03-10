@@ -12,6 +12,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator
+from cloudinary.models import CloudinaryField
 
 
 
@@ -138,8 +139,8 @@ class Merchant(AbstractBaseUser, PermissionsMixin):
     is_business_cac_verified = models.BooleanField(default=False)
 
     # document uploads
-    id_card = models.ImageField(upload_to="id_cards/", null=True, blank=True)
-    passport = models.ImageField(upload_to="passports/", null=True, blank=True)
+    id_card = CloudinaryField('image', folder='id_cards', null=True, blank=True)
+    passport = CloudinaryField('image', folder='passports', null=True, blank=True)
     is_kyc_verified = models.BooleanField(default=False)
 
     # timestamps

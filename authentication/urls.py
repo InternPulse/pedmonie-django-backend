@@ -26,6 +26,9 @@ urlpatterns = [
     path('verify-email/', MerchantViewSet.as_view({'post': 'verify_email'}), name='verify-email'),
     path('signin/', MerchantViewSet.as_view({'post': 'signin'}), name='merchant-signin'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
-    path('merchants/<uuid:merchant_id>/', MerchantViewSet.as_view({'get': 'retrieve'}))
-    
+    path('merchants/<uuid:merchant_id>/', MerchantViewSet.as_view({'get': 'retrieve'})),
+    path('merchant/<uuid:merchant_id>/documents/verify/', MerchantViewSet.as_view({'post': 'upload_documents'}), name='merchant-upload-documents'),
+    path('merchants/<uuid:merchant_id>/documents/verify/', MerchantViewSet.as_view({'post': 'verify_kyc'}), name='merchant-verify-kyc'),
+    path('merchants/<uuid:merchant_id>/documents/status/', MerchantViewSet.as_view({'get': 'kyc_status'}), name='merchant-kyc-status'),
+  
 ]
