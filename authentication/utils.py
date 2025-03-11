@@ -39,8 +39,7 @@ def store_verification_token(email, token):
         logger.info(f"Token stored successfully for {sanitized_email}")
         return True
     except redis.RedisError as e:
-        logger.error(f"Redis error storing verification token for {
-                     email}: {str(e)}")
+        logger.error(f"Redis error storing verification token for {email}: {str(e)}")
         return False
 
 
