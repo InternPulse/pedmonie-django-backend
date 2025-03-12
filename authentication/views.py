@@ -635,7 +635,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 'merchant_id': str(merchant.merchant_id),
                 'email': merchant.email,
                 'business_name': merchant.business_name,
-                'document_submited': {
+                'document_submitted': {
                     'nin': bool(merchant.nin),
                     'cac': bool(merchant.cac_number),
                     'id_card': bool(merchant.id_card),
