@@ -242,13 +242,11 @@ class MerchantRegistrationSerializer(serializers.ModelSerializer):
 
         # Store verification token in Redis
             if store_verification_token(merchant_data['email'], token):
-                logger.info(f"Verification token stored for {
-                            merchant_data['email']}")
+                logger.info(f"Verification token stored for {merchant_data['email']}")
 
                 # Send verification email
                 if send_verification_email(merchant_data['email'], token):
-                    logger.info(f"Verification email sent to {
-                                merchant_data['email']}")
+                    logger.info(f"Verification email sent to {merchant_data['email']}")
                     return True
                 else:
                     clear_merchant_data(merchant_data['email'])

@@ -37,7 +37,7 @@ class TestVerificationFunctions(unittest.TestCase):
         mock_config.return_value = '300'
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
-        result = store_merchant_data('test@example.com', {'name': 'Merchant'})
+        result = utils.store_merchant_data('test@example.com', {'name': 'Merchant'})
         self.assertTrue(result)
 
     @patch('authentication.utils.redis_client')

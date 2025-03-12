@@ -39,8 +39,7 @@ def store_verification_token(email, token):
         logger.info(f"Token stored successfully for {sanitized_email}")
         return True
     except redis.RedisError as e:
-        logger.error(f"Redis error storing verification token for {
-                     email}: {str(e)}")
+        logger.error(f"Redis error storing verification token for {email}: {str(e)}")
         return False
 
 
@@ -61,7 +60,7 @@ def store_merchant_data(email, merchant_data):
         )
         return True
     except redis.RedisError as e:
-        logger.error(f'Redis error storing merchant data: {str(e)}')
+        logger.error(f"Redis error storing merchant data: {str(e)}")
         return False
 
 
@@ -98,8 +97,7 @@ def verify_token(email, token):
         stored_token = redis_client.get(
             f'email_verification:{sanitized_email}')
         if not stored_token:
-            logger.warning(f'No verification token found for {
-                           sanitized_email}')
+            logger.warning(f'No verification token found for {sanitized_email}')
             return False
 
         logger.info(f"Comparing token: {stored_token} with {token}")
