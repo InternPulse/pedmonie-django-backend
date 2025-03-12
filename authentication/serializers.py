@@ -353,10 +353,10 @@ class VerifyMerchantSerializer(serializers.ModelSerializer):
             instance.is_bvn_verified = validated_data['is_bvn_verified']
         if 'is_nin_verified' in validated_data:
             instance.is_nin_verified = validated_data['is_nin_verified']
-        if 'is_bunisess_cac_verified' in validated_data:
-            instance.is_bunisess_cac_verified = validated_data['is_bunisess_cac_verified']
+        if 'is_business_cac_verified' in validated_data:
+            instance.is_business_cac_verified = validated_data['is_business_cac_verified']
         
-        if instance.is_bvn_verified and instance.is_nin_verified and instance.is_bunisess_cac_verified:
+        if instance.is_bvn_verified and instance.is_nin_verified and instance.is_business_cac_verified:
             instance.is_kyc_verified = True
         else:
             instance.is_kyc_verified = False
