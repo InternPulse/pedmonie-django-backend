@@ -285,7 +285,9 @@ LOGGING = {
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "http://localhost:5174", 
+    "http://localhost:5174",
+    "https://pedmonie-frontend-boqo.onrender.com",
+
 ]   
 
 CORS_ALLOW_CREDENTIALS = True
