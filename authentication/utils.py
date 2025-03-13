@@ -186,7 +186,7 @@ def verify_nin(self, bvn, first_name=None, last_name=None, date_of_birth=None):
         response = requests.post(url, json=payload, headers=headers)
         response_data = response.json()
 
-        #Log the rrsponse for debugging
+        #Log the response for debugging
         logger.debug(f'Korapay NIN verification response: {response_data}')
 
         if response.status_code == 200 and response_data.get('status') == True:
@@ -289,7 +289,7 @@ def verify_cac(self, cac_number, business_name):
         # include the ID number, registered name of the business & boolean indicating that subject gave consent to perform verification
         payload = {
             "id": "merchant.cac_number",        
-            "registration_name": "merchant.business_name",            
+            "registration_name": "business_name",            
             "verification_consent": true
         }
 
