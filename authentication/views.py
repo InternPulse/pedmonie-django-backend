@@ -44,7 +44,7 @@ from .serializers import CustomTokenObtainPairSerializer
 
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .utils import verify_nin, verify_bvn
+from .utils import verify_nin, verify_bvn, verify_cac
 
 ###############################################################################################################
 
@@ -469,8 +469,10 @@ class MerchantViewSet(viewsets.ModelViewSet):
         nin = request.data.get('nin')
         cac_number = request.data.get('cac_number')
         date_of_birth = request.data.get('date_of_birth')
+        business_name = request.data.get('business_name')
 
-        if not all([ nin, cac_number, date_of_birth]):
+
+        if not all([ bvn, nin, cac_number, date_of_birth]):
             return Response({
                 'status': 'error',
                 'message': 'BVN, NIN, CAC number and date of birth are required.'
@@ -485,11 +487,10 @@ class MerchantViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            #save the indentification information first
+            #save the identification information first
             merchant.bvn = bvn
             merchant.nin = nin
-            merchant.cac_number = cac_number
-            merchant.save()
+            merchant.cac_number = cac_number            
 
             bvn_verification = verify_bvn(
                 bvn,
@@ -504,8 +505,18 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 date_of_birth,
                 merchant.merchant_id
             )
-            is_bvn_verified = bvn_verification.get('status') == 'success'
+
+            # call util function to verify cac
+            cac_verification = verify_cac(cac_number, business_name)
+
+            # retrieve status of verification
+            is_bvn_verified = bvn_verification.get('status') == 'success' 
             is_nin_verified = nin_verification.get('status') == 'success'
+            is_cac_verified = cac_verification.get('status') == 'success'
+
+            # set verification to true if the cac verification shows a successful response
+            if is_cac_verified:
+                merchant.is_cac_verified = True
 
             if is_bvn_verified:
                 merchant.is_bvn_verified = True
@@ -513,20 +524,29 @@ class MerchantViewSet(viewsets.ModelViewSet):
             if is_nin_verified:
                 merchant.is_nin_verified = True
 
+            # save the data after performing verification checks to prevent storing unverified data
             merchant.save()
 
-            if is_bvn_verified and is_nin_verified:
+            if is_bvn_verified and is_nin_verified and is_cac_verified:
                 verification_status = 'success'
                 message = 'Merchant verification successful'
+
             elif is_bvn_verified:
                 verification_status = 'partial'
                 message = ' BVN verified successfully, but NIN verification failed'
+
             elif is_nin_verified:
-                verification_status = 'success'
+                verification_status = 'partial'
                 message = 'NIN verified successfully but BVN verification failed'
+
+            # if only cac was verified
+            elif is_cac_verified:                
+                verification_status = 'partial'
+                message = 'CAC verified successfully but BVN and NIN verification failed'
+
             else:
                 verification_status = 'error'
-                message = ' Both NIN and BVN verification failed'
+                message = 'CAC, NIN and BVN verification failed'
             
             return Response({
                 'status': verification_status,
@@ -539,13 +559,32 @@ class MerchantViewSet(viewsets.ModelViewSet):
                     'is_bvn_verified': merchant.is_bvn_verified,
                     'nin': merchant.nin,
                     'is_nin_verified': merchant.is_nin_verified,
+                    'is_cac_verified': merchant.is_cac_verified,
                     'verification_details': {
                         'bvn': bvn_verification.get('data') if is_bvn_verified else None,
-                        'nin': nin_verification.get('data') if is_nin_verified else None
+                        'nin': nin_verification.get('data') if is_nin_verified else None,
+                        'cac': cac_verification.get('data') if is_cac_verified else None
                     }
                 }
 
             }, status=status.HTTP_200_OK if verification_status != 'error' else status.HTTP_400_BAD_REQUEST)
+        
+        # validation error
+        except ValidationError as e:
+            logger.error(f'Validation error for merchant {merchant.merchant_id}: {str(e)}')
+            return Response({
+                'status': 'error',
+                'message': 'Validation error during merchant verification'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # connection error
+        except ConnectionError as e:
+            logger.error(f'Connection error during merchant verification for {merchant.merchant_id}: {str(e)}')
+            return Response({
+                'status': 'error',
+                'message': 'Service temporarily unavailable'
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         except Exception as e:
             logger.error(f'Error verifying merchant {merchant.merchant_id}: {str(e)}')
             return Response({
@@ -554,10 +593,6 @@ class MerchantViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
-
-
-
-    
     @action(detail=True, methods=['POST'])
     def verify_kyc(self, request, merchant_id=None):
         """
@@ -635,7 +670,7 @@ class MerchantViewSet(viewsets.ModelViewSet):
                 'merchant_id': str(merchant.merchant_id),
                 'email': merchant.email,
                 'business_name': merchant.business_name,
-                'document_submited': {
+                'document_submitted': {
                     'nin': bool(merchant.nin),
                     'cac': bool(merchant.cac_number),
                     'id_card': bool(merchant.id_card),

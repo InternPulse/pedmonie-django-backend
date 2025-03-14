@@ -186,7 +186,7 @@ def verify_nin(self, bvn, first_name=None, last_name=None, date_of_birth=None):
         response = requests.post(url, json=payload, headers=headers)
         response_data = response.json()
 
-        #Log the rrsponse for debugging
+        #Log the response for debugging
         logger.debug(f'Korapay NIN verification response: {response_data}')
 
         if response.status_code == 200 and response_data.get('status') == True:
@@ -243,7 +243,7 @@ def verify_bvn(self, bvn, first_name=None, last_name=None, date_of_birth=None):
         response = requests.post(url, json=payload, headers=headers)
         response_data = response.json()
 
-        #Log the rrsponse for debugging
+        #Log the response for debugging
         logger.debug(f'Korapay BVN verification response: {response_data}')
 
         if response.status_code == 200 and response_data.get('status') == True:
@@ -271,6 +271,55 @@ def verify_bvn(self, bvn, first_name=None, last_name=None, date_of_birth=None):
             'data': {'detail': str(e)}
         }
     
+# define a function that checks the certificate of incorporation (cac) of a business
+# https://developers.korapay.com/docs/nigeria-certificate-incorporation
+def verify_cac(self, cac_number, business_name):
+    """
+    Verify CAC using KORAPAY
+    """
+    try:
+        # make a POST request to the endpoint URL
+        url = 'https://api.korapay.com/merchant/api/v1/identities/ng/cac'
 
+        headers = {
+            "Authorization": f"Bearer {config('KORAPAY_SECRET_KEY')}",
+            "Content-Type": "application/json"
+        }
 
+        # include the ID number, registered name of the business & boolean indicating that subject gave consent to perform verification
+        payload = {
+            "id": "merchant.cac_number",        
+            "registration_name": "business_name",            
+            "verification_consent": true
+        }
 
+        response = requests.post(url, json=payload, headers=headers)
+        response_data = response.json()
+
+        #Log the response for debugging
+        logger.debug(f'Korapay CAC verification response: {response_data}')
+
+        if response.status_code == 200 and response_data.get('status') == True:
+            data = response_data.get('data', {})
+            is_verified = data.get('verification_status') == 'success'
+
+            return {
+                'status': 'success' if is_verified else 'error',
+                'message': 'CAC verification successful' if is_verified else 'CAC verification failed',
+                'data': data,
+                'response_data': response_data
+            }
+        else:
+            return {
+                'status': 'error',
+                'message': response_data.get('message', 'CAC verification failed'),
+                'errors': response_data.get('errors', {}),
+                'response_data': response_data
+            }
+    except Exception as e:
+        logger.error(f'Error during CAC verification: {str(e)}')
+        return {
+            'status': 'error',
+            'message': 'Error connecting to verification service.',
+            'data': {'detail': str(e)}
+        }
