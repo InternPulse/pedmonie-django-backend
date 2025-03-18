@@ -287,11 +287,17 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
     "https://pedmonie-frontend-boqo.onrender.com",
+    "https://www.pedmonie.com.ng",
+    "https://pedmonie.com.ng",
+    "https://pedmonie-django-backend.onrender.com",
 
 ]   
 
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://pedmonie-django-backend.onrender.com"
+    "https://pedmonie-django-backend.onrender.com",
+    "https://pedmonie-frontend-boqo.onrender.com",
+    "https://www.pedmonie.com.ng",
+    "https://pedmonie.com.ng",
 ]
